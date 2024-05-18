@@ -4,6 +4,7 @@
   "forgetPass": "Forgot Password?",
   "login": "Login",
   "signup": "Create Account",
+  "sign out": "Sign Out",
   "Don't have an account": "Don't have an account?",
   "Today": "Today",
   "schedule": "Upcoming",
@@ -81,6 +82,21 @@
   "todayInvitations": "Today Invitations",
   "expiredInvitations": "Expired Invitations",
   "upcomingInvitations": "upcoming Invitations" ,
-  "nationalId": "National Id"
+  "nationalId": "National Id",
+  "account": "Account",
+  "Appearance": "Appearance",
+  "Learn more about the app": "Learn more about the app",
+  "Leave The Application": "Leave The Application",
+  "About This App": "About This App",
+  "Manage your account settings": "Manage your account settings",
+  "Customize the app appearance": "Customize the app appearance",
+  "about": "About",
+  "Invitations": "Invitations",
+  "Register Date":"Register Date",
+  "Expired Date": "Expired Date",
+  "Dashboard": "Dashboard",
+  "Create": "Create",
+  "Settings": "Settings"
+
 
 }

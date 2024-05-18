@@ -1,5 +1,5 @@
 {
-  "email": "البريد الإلكنروني",
+  "email": "البريد الإلكتروني",
   "password": "كلمة المرور",
   "forgetPass": "نسيت كلمة المرور؟",
   "login": "تسجيل دخول",
@@ -81,9 +81,22 @@
   "todayInvitations": "دعوات اليوم",
   "expiredInvitations": "الدعوات الفائتة",
   "upcomingInvitations": "الدعوات القادمة",
-  "nationalId": "الرقم القومي"
-
-
+  "nationalId": "الرقم القومي",
+  "account": "الحساب",
+  "Appearance": "المظهر",
+  "sign out": "تسجيل الخروج",
+  "Leave The Application": "ترك التطبيق",
+  "About This App": "عن هذا التطبيق\n",
+  "Manage your account settings": "إدارة إعدادات حسابك\n",
+  "Customize the app appearance": "تخصيص مظهر التطبيق\n",
+  "about": "حول ",
+  "Learn more about the app": "تعرف على المزيد حول التطبيق\n",
+  "Invitations": "الدعوات",
+  "Register Date": "تاريخ التسجيل\n",
+  "Expired Date": "منتهي الصلاحية\n",
+  "Dashboard":"الصفحة الرئيسية",
+  "Create": "انشاء",
+  "Settings": "الاعدادات"
 
 
 

@@ -1,3 +1,4 @@
+import 'package:avms/core/utils/config.dart';
 import 'package:flutter/material.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _AboutScreenState extends State<AboutScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'About This App',
+                Config.Localization["About This App"],
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

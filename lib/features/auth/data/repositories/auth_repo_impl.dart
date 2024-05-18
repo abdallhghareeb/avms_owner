@@ -77,6 +77,31 @@ class AuthRepoImpl extends AuthRepo {
         ));
     ;
   }
+  Future<User?> signUp({
+    required String userName,
+    required String phone,
+    required String uniqCode,
+    required String email,
+    required String AreaIds
+
+  }) async {
+    final signUpParametersBody = {
+      "Username": userName,
+      "PhoneNumber": phone,
+      "UniqCode": uniqCode,
+      "Email":email,
+      "AreaIds":AreaIds
+    };
+
+    var res = await handleRequest(() =>
+        DioHelper.postSignIn(
+          url: BASE_URL + postSignUpEndPoint,
+          parameters: signUpParametersBody,
+        ));
+    // final authResponse = AuthResponseModel.fromJson(res);
+    return UserModel.fromJson(res.data);
+    // return null;
+  }
 
   void _clearCache() async {
     // await CacheHelper.removeData(key: CacheHelper.isLoginBeforeKey);

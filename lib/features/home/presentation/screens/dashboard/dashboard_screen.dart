@@ -3,6 +3,7 @@ import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/app_size.dart';
 import 'package:avms/core/utils/app_spaces.dart';
+import 'package:avms/core/utils/config.dart';
 import 'package:avms/core/utils/font_size.dart';
 import 'package:avms/features/home/data/models/visit_model.dart';
 import 'package:avms/features/home/domain/entities/visit.dart';
@@ -213,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Recently Visit",
+                           Config.Localization['recentlyVisits'],
                             style: TextStyle(
                                 color: Colors.black,
                                 fontSize: FontSize.s20,
@@ -225,7 +226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               HomeCubit.get(context).changeNavBar(index: 2);
                             },
                             child: Text(
-                              "View All",
+                              Config.Localization['viewAll'],
                               style: TextStyle(
                                 color: AppColors.appColor,
                                 fontSize: FontSize.s20,

@@ -1,18 +1,26 @@
+import 'dart:io';
+
 import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/app_size.dart';
 import 'package:avms/core/utils/app_spaces.dart';
+import 'package:avms/core/utils/config.dart';
 import 'package:avms/core/utils/font_size.dart';
 import 'package:avms/features/auth/presentation/widgets/validator.dart';
 import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_cubit.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_state.dart';
 import 'package:avms/widgets/btn.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 
 class CreateInvitationScreen extends StatefulWidget {
@@ -28,6 +36,19 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
   late TextEditingController? phoneController;
   late TextEditingController? nationalIdController;
   final createInvitationFormKey = GlobalKey<FormState>();
+  File? _image;
+  final pickedImage = ImagePicker();
+
+  void UploadImage() async {
+    var imagePicked = await pickedImage.pickImage(source: ImageSource.gallery);
+    setState(() {
+      if (imagePicked != null) {
+        _image = File(imagePicked.path);
+      } else {
+        print('no Image Picked');
+      }
+    });
+  }
 
   List<DateTime>? dateTimeList = [
     DateTime.now(),
@@ -62,37 +83,28 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: BlocConsumer<HomeCubit, HomeState>(
-        listener: (context, state) {
-          if (state is CreateInvitationSuccessState) {
-            HomeCubit.get(context).changeNavBar(index: 0);
-            (context as Element).reassemble();
+    return BlocBuilder<LangCubit, LangState>(builder: (context, state) {
+      return Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: BlocConsumer<HomeCubit, HomeState>(
+          listener: (context, state) {
+            if (state is CreateInvitationSuccessState) {
+              HomeCubit.get(context).changeNavBar(index: 0);
+              (context as Element).reassemble();
 
-            HomeCubit.get(context).loadDashData();
-          }
-        },
-        builder: (context, state) {
-          return SafeArea(
-            child: Container(
-              width: SizeConfig.screenWidth,
-              height: SizeConfig.screenHeight,
-              padding: EdgeInsetsDirectional.all(borderRadius),
-              child:
-                  Stack(clipBehavior: Clip.antiAliasWithSaveLayer, children: [
-                Center(
+              HomeCubit.get(context).loadDashData();
+            }
+          },
+          builder: (context, state) {
+            return SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: Card(
-                    semanticContainer: true,
-                    elevation: elevation,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadiusDirectional.all(
-                        Radius.circular(
-                          borderRadius,
-                        ),
-                      ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)
                     ),
-                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    elevation: 0.5,
                     child: Padding(
                       padding: const EdgeInsetsDirectional.symmetric(
                           horizontal: 10.0, vertical: 16),
@@ -102,7 +114,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "sendInvitation",
+                              Config.Localization['sendInvitation'],
                               style: TextStyle(
                                 color: AppColors.appColor,
                                 fontSize: FontSize.s20,
@@ -118,7 +130,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                               child: TextFormField(
                                 controller: nameController,
                                 decoration: TextFieldDecoration.copyWith(
-                                  labelText: 'fullName'.tr(),
+                                  labelText: Config.Localization['fullName'],
                                   prefixIcon: Icon(
                                     Icons.person,
                                     color: AppColors.appColor,
@@ -135,7 +147,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                 controller: emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: TextFieldDecoration.copyWith(
-                                  labelText: 'email'.tr(),
+                                  labelText: Config.Localization['email'],
                                   prefixIcon: Icon(
                                     Icons.mail,
                                     color: AppColors.appColor,
@@ -156,7 +168,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                     print('changed into $phoneNumber'),
                                 enabled: true,
                                 decoration: TextFieldDecoration.copyWith(
-                                    hintText: "Phone"),
+                                    hintText: Config.Localization['phone']),
                                 initialCountryCode: "EG",
                               ),
                             ),
@@ -171,7 +183,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                   LengthLimitingTextInputFormatter(14),
                                 ],
                                 decoration: TextFieldDecoration.copyWith(
-                                  labelText: 'nationalId'.tr(),
+                                  labelText: Config.Localization['nationalId'],
                                   prefixIcon: Icon(
                                     FontAwesomeIcons.idCard,
                                     color: AppColors.appColor,
@@ -270,7 +282,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                               vertical: 16, horizontal: 10),
                                           labelText: pressed == false
                                               ? null
-                                              : 'Register Date'.tr()),
+                                              : Config.Localization[
+                                                  'Register Date']),
                                       child: pressed == false
                                           ? Row(
                                               children: [
@@ -288,7 +301,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                                 Expanded(
                                                   flex: 5,
                                                   child: Text(
-                                                    'Register Date'.tr(),
+                                                    Config.Localization[
+                                                        'Register Date'],
                                                     style: TextStyle(
                                                       color:
                                                           AppColors.lightGrey,
@@ -347,7 +361,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                           contentPadding: EdgeInsets.all(16),
                                           labelText: pressed == false
                                               ? null
-                                              : 'Expired Date'.tr()),
+                                              : Config.Localization[
+                                                  'Expired Date']),
                                       child: pressed == false
                                           ? Row(
                                               children: [
@@ -364,7 +379,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                                 Expanded(
                                                   flex: 2,
                                                   child: Text(
-                                                    'Expired Date'.tr(),
+                                                    Config.Localization[
+                                                        'Expired Date'],
                                                     style: TextStyle(
                                                       color:
                                                           AppColors.lightGrey,
@@ -391,13 +407,59 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                 ),
                               ],
                             ),
+                            InkWell(
+                              onTap: () {
+                                UploadImage();
+                              },
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.camera_alt_outlined),
+                                      AppSpaces.hSpace16,
+                                      Text(
+                                        'UpLoad',
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            AppSpaces.vSpace20,
+
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                width: 300,
+                                height: 200,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: _image != null
+                                    ? Image.file(
+                                        _image!.absolute,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Center(
+                                        child: Icon(
+                                          Icons.add_photo_alternate_outlined,
+                                          size: 30,
+                                        ),
+                                      ),
+                              ),
+                            ),
 
                             AppSpaces.vSpace20,
+
                             ConditionalBuilder(
                               condition: state is CreateInvitationLoadingState,
                               builder: (context) => CircularProgressIndicator(),
                               fallback: (context) => MainButton(
-                                text: "send",
+                                text: Config.Localization['send'],
                                 onPressed: () async {
                                   FocusScope.of(context).unfocus();
                                   if (!createInvitationFormKey.currentState!
@@ -426,11 +488,11 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                     ),
                   ),
                 ),
-              ]),
-            ),
-          );
-        },
-      ),
-    );
+              ),
+            );
+          },
+        ),
+      );
+    });
   }
 }

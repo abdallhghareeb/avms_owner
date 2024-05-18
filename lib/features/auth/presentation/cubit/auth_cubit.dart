@@ -1,18 +1,24 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:avms/features/auth/data/models/reg_model.dart';
 import 'package:avms/features/auth/domain/entities/user.dart';
 import 'package:avms/features/auth/domain/use_cases/forget_password_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/reset_password_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/sign_in_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/sign_out_use_case.dart';
+import 'package:avms/features/auth/domain/use_cases/sign_up_use_case.dart';
 import 'package:avms/features/auth/presentation/cubit/auth_state.dart';
+import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';
+import 'package:avms/services/local/dio_helper.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final SignInUseCase signInUseCase;
+  final SignUpUseCase signUpUseCase;
   final SignOutUseCase signOutUseCase;
   final ForgetPasswordUseCase forgotPasswordUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
@@ -24,6 +30,7 @@ class AuthCubit extends Cubit<AuthState> {
     required this.signOutUseCase,
     required this.forgotPasswordUseCase,
     required this.resetPasswordUseCase,
+    required this.signUpUseCase
   }) : super(AuthInitial());
 
   User? user;
@@ -44,6 +51,52 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthError('An error occurred ${e.toString()}'));
     }
   }
+  RegModel ?regModel;
+  void putReg({
+    required String? Name,
+    required String? Phone,
+    required String? uni,
+    required String? Email,
+    required String areaId,
+  }) async {
+    // Check for null values
+    if (Name == null || Name.isEmpty ||
+        Phone == null || Phone.isEmpty ||
+        uni == null || uni.isEmpty ||
+        Email == null || Email.isEmpty ||
+        areaId.isEmpty) {
+      emit(AuthError1('All fields are required.'));
+      return;
+    }
+
+    emit(AuthLoading1());
+
+    try {
+      // Make the API call
+      final response = await DioHelper.postData(
+        url: 'auth/register',
+        data: {
+          "Username": Name,
+          "PhoneNumber": Phone,
+          "UniqCode": uni,
+          "Email": Email,
+          "AreaIds": areaId,
+        },
+      );
+
+      // Parse the response
+      regModel = RegModel.fromJson(response.data);
+      print('Status Code => ${regModel?.statusCode}');
+      print('Status Message => ${regModel?.message}');
+      print('Token => ${regModel?.data?.token}');
+
+      emit(AuthAuthenticatedSignUp(regModel!));
+    } catch (e) {
+      // Check if the error is a DioError and handle accordingly
+      emit(AuthError1('An error occurred: ${e.toString()}'));
+    }
+  }
+
 
   Future<void> forgotPassword(String email) async {
     emit(AuthForgotPasswordLoading());
@@ -110,5 +163,13 @@ class AuthCubit extends Cubit<AuthState> {
       Exception("Error not found androidId");
       return 'Error';
     }
+  }
+  String? valueBase;
+  void putYourBaseUrl(String value)async{
+    SharedPreferences pre= await SharedPreferences.getInstance();
+    valueBase=value;
+    BASE_URL=value;
+    pre.setString('baseUrl', '$BASE_URL}');
+
   }
 }

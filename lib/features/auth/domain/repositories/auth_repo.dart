@@ -7,6 +7,14 @@ abstract class AuthRepo {
     required String password,
     required String uniqCode,
   });
+  Future<User?> signUp({
+    required String userName,
+    required String phone,
+    required String uniqCode,
+    required String email,
+    required String AreaIds,
+
+  });
 
   Future<void> signOut({required BuildContext context});
 

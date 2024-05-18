@@ -4,6 +4,7 @@ import 'package:avms/features/auth/domain/use_cases/forget_password_use_case.dar
 import 'package:avms/features/auth/domain/use_cases/reset_password_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/sign_in_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/sign_out_use_case.dart';
+import 'package:avms/features/auth/domain/use_cases/sign_up_use_case.dart';
 import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:avms/features/home/data/repositories/home_repo_impl.dart';
 import 'package:avms/features/home/domain/repositories/home_repo.dart';
@@ -24,6 +25,8 @@ void setupLocator() {
 
   // Register UseCases
   sl.registerLazySingleton(() => SignInUseCase(authRepo: sl()));
+  sl.registerLazySingleton(() => SignUpUseCase(authRepo: sl()));
+
   sl.registerLazySingleton(() => SignOutUseCase(authRepo: sl()));
   sl.registerLazySingleton(() => ForgetPasswordUseCase(authRepo: sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(authRepo: sl()));
@@ -38,6 +41,7 @@ void setupLocator() {
   sl.registerFactory(
     () => AuthCubit(
       signInUseCase: sl(),
+      signUpUseCase: sl(),
       signOutUseCase: sl(),
       forgotPasswordUseCase: sl(),
       resetPasswordUseCase: sl(),

@@ -1,3 +1,4 @@
+import 'package:avms/features/auth/data/models/reg_model.dart';
 import 'package:avms/features/auth/domain/entities/user.dart';
 
 abstract class AuthState {}
@@ -16,6 +17,19 @@ class AuthError extends AuthState {
   final String errorMessage;
 
   AuthError(this.errorMessage);
+}
+class AuthLoading1 extends AuthState {}
+
+class AuthAuthenticatedSignUp extends AuthState {
+  final RegModel user;
+
+  AuthAuthenticatedSignUp(this.user);
+}
+
+class AuthError1 extends AuthState {
+  final String errorMessage;
+
+  AuthError1(this.errorMessage);
 }
 
 class AuthForgotPasswordLoading extends AuthState {}

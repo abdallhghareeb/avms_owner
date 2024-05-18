@@ -4,10 +4,12 @@ import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/app_size.dart';
 import 'package:avms/core/utils/app_spaces.dart';
 import 'package:avms/core/utils/app_strings.dart';
+import 'package:avms/core/utils/config.dart';
 import 'package:avms/core/utils/font_size.dart';
 import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:avms/features/auth/presentation/cubit/auth_state.dart';
 import 'package:avms/features/auth/presentation/screens/forget_password_screen.dart';
+import 'package:avms/features/auth/presentation/screens/register_screen.dart';
 import 'package:avms/features/auth/presentation/widgets/validator.dart';
 import 'package:avms/features/home/presentation/screens/home_screen.dart';
 import 'package:avms/widgets/btn.dart';
@@ -94,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "login",
+                          Config.Localization['login'],
                           style: TextStyle(
                             color: AppColors.appColor,
                             fontSize: FontSize.s20,
@@ -109,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextFormField(
                             controller: userNameController,
                             decoration: TextFieldDecoration.copyWith(
-                              labelText: 'E-mail',
+                              labelText: Config.Localization['email'],
                               prefixIcon: Icon(
                                 Icons.email,
                                 color: AppColors.appColor,
@@ -126,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               obscureText: isPasswordHidden,
                               validator: validator,
                               decoration: TextFieldDecoration.copyWith(
-                                labelText: 'password'.tr(),
+                                labelText: Config.Localization['password'],
                                 prefixIcon: Icon(
                                   Icons.key,
                                   color: AppColors.appColor,
@@ -163,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             return ConditionalBuilder(
                               condition: state is! AuthLoading,
                               builder: (context) => MainButton(
-                                text: "login",
+                                text: Config.Localization['login'],
                                 onPressed: () {
                                   FocusScope.of(context).unfocus();
                                   if (!loginFormKey.currentState!.validate())
@@ -199,12 +201,21 @@ class _LoginScreenState extends State<LoginScreen> {
                             );
                           },
                           child: Text(
-                            'forgetPass',
+                            Config.Localization['forgetPass'],
                             style: TextStyle(
                                 color: AppColors.appColor,
                                 fontWeight: FontWeight.bold),
                           ).tr(),
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('If you dont have Account?'),
+                            TextButton(onPressed: (){
+                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>RegisterScreen()));
+                            }, child: Text('SignUp',)),
+                          ],
+                        )
                       ],
                     ),
                   ),

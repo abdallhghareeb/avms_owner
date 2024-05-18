@@ -3,10 +3,10 @@ import 'package:equatable/equatable.dart';
 class User extends Equatable {
   final dynamic message;
   final bool? isAuthenticated;
-  final String? username;
-  final String? email;
+  final dynamic username;
+  final dynamic email;
   final List<dynamic>? roles;
-  final String? token;
+  final dynamic token;
   final String? expiresOn;
   final String? refreshTokenExpiration;
 

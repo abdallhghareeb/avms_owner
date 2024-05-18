@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:developer';
 import 'package:avms/core/utils/app_conts.dart';
+import 'package:avms/core/utils/config.dart';
 import 'package:avms/features/home/domain/use_cases/cancel_invitation_use_case.dart';
 import 'package:avms/features/home/domain/use_cases/get_invitstion_by_id_use_case.dart';
 import 'package:avms/widgets/alert_dialog.dart';
@@ -54,6 +55,7 @@ class HomeCubit extends Cubit<HomeState> {
   // Variable to store the current navigation index
   int currentNavIndex = 0;
 
+
   // Method to change the navigation bar
   void changeNavBar({required int index}) {
     // Update the index and emit the state change
@@ -79,7 +81,7 @@ class HomeCubit extends Cubit<HomeState> {
     return [
       PersistentBottomNavBarItem(
         icon: Icon(CupertinoIcons.home),
-        title: ("Dashboard"),
+        title: (Config.Localization['Dashboard']),
         activeColorPrimary: AppColors.appColor,
         inactiveColorPrimary: CupertinoColors.systemGrey,
         textStyle: TextStyle(
@@ -88,7 +90,7 @@ class HomeCubit extends Cubit<HomeState> {
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.insert_invitation_rounded),
-        title: ("Create"),
+        title: (Config.Localization['Create']),
         textStyle: TextStyle(
           fontWeight: FontWeightManager.bold,
         ),
@@ -97,7 +99,7 @@ class HomeCubit extends Cubit<HomeState> {
       ),
       PersistentBottomNavBarItem(
         icon: Icon(CupertinoIcons.list_bullet_below_rectangle),
-        title: ("Invitation"),
+        title: (Config.Localization['Invitations']),
         activeColorPrimary: AppColors.appColor,
         inactiveColorPrimary: CupertinoColors.systemGrey,
         textStyle: TextStyle(
@@ -107,7 +109,7 @@ class HomeCubit extends Cubit<HomeState> {
       ),
       PersistentBottomNavBarItem(
         icon: Icon(CupertinoIcons.settings),
-        title: ("Settings"),
+        title: (Config.Localization['Settings']),
         activeColorPrimary: AppColors.appColor,
         inactiveColorPrimary: CupertinoColors.systemGrey,
         textStyle: TextStyle(

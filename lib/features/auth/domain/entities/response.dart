@@ -6,7 +6,7 @@ class AuthResponse extends Equatable {
   final int? statusCode;
   final dynamic meta;
   final bool? succeeded;
-  final String? message;
+  final dynamic message;
   final dynamic errors;
   // final dynamic data;
 

@@ -5,12 +5,14 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.1.5 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 dependencies:
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.2
+  dart_ipify: ^1.1.1
+
 
   flutter_localizations:
     sdk: flutter
@@ -27,6 +29,8 @@ dependencies:
   flutter_svg:
   path_provider:
   internet_connection_checker_plus: ^2.2.0
+  image_picker: ^1.1.1
+  path: ^1.9.0
   dio:
   firebase_crashlytics:
   logger:
