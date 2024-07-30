@@ -9,13 +9,13 @@ class SignInUseCase {
   Future<User?> execute(
     String userName,
     String password,
-    String uniqCode,
+    String uniqCode
+
 
   ) {
     return authRepo.signIn(
       userName: userName,
-      password: password,
-      uniqCode: uniqCode,
+      password: password, uniqCode: uniqCode,
     );
   }
 }

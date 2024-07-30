@@ -1,17 +1,38 @@
+import 'dart:convert';
+
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:http/http.dart' as http;
 
 class ApiServer{
-  Future<bool>SignUp(dynamic data)async{
+
+  void fetchData() async {
+    var url = Uri.parse('your_api_endpoint_here'); // Replace with your actual API endpoint
+
     try {
-      http.Response response=await http.post(Uri.parse('$BASE_URL api/v1/auth/register'),body: data);
-      if(response.statusCode==200){
-        return true;
-      }else{
-        return false;
+      var response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        // Request body can be empty if not needed
+        body: jsonEncode({
+          "username": "example_username",
+          "password": "example_password",
+          // Include other fields as needed
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Successful response handling
+        var responseData = jsonDecode(response.body);
+        var confirmMessage = responseData['data']['confirmMessage'];
+        print('Confirm message: $confirmMessage');
+      } else {
+        // Error handling
+        print('Error: ${response.statusCode}');
       }
-    }catch(e){
-      throw Exception(e);
+    } catch (e) {
+      print('Exception details: $e');
     }
   }
 }

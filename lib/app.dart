@@ -1,13 +1,20 @@
 
 import 'package:avms/core/utils/app_conts.dart';
-import 'package:avms/core/utils/app_local.dart';
 import 'package:avms/core/utils/app_size.dart';
 import 'package:avms/core/utils/app_strings.dart';
 import 'package:avms/core/utils/app_themes.dart';
+import 'package:avms/features/auth/presentation/screens/Area.dart';
+import 'package:avms/features/auth/presentation/screens/area_unit_without_owner.dart';
 import 'package:avms/features/auth/presentation/screens/enter_your_baseUrl.dart';
 import 'package:avms/features/auth/presentation/screens/login_screen.dart';
 import 'package:avms/features/auth/presentation/screens/register_screen.dart';
+import 'package:avms/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:avms/features/home/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:avms/features/home/presentation/screens/home_screen.dart';
+import 'package:avms/features/home/presentation/screens/invitation/invitations.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/appearance/apearance_screen.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/profile/profile_screen.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/update_profile/users_update_screen.dart';
 import 'package:avms/features/splash/splash_screen.dart';
 import 'package:avms/routes.dart';
 import 'package:easy_localization/easy_localization.dart';

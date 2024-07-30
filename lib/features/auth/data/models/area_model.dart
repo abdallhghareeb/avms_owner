@@ -12,8 +12,9 @@ class Area {
   final String? note;
   final String? description;
   final bool isDeleted;
-  final String? ownerId;
-  final String? ownerName;
+  final int? createdUserId;
+  final String? createdUserName;
+  final List<dynamic> owners;
 
   Area({
     required this.id,
@@ -29,8 +30,9 @@ class Area {
     this.note,
     this.description,
     required this.isDeleted,
-    this.ownerId,
-    this.ownerName,
+    this.createdUserId,
+    this.createdUserName,
+    required this.owners,
   });
 
   factory Area.fromJson(Map<String, dynamic> json) {
@@ -48,8 +50,9 @@ class Area {
       note: json['note'],
       description: json['description'],
       isDeleted: json['isDeleted'],
-      ownerId: json['ownerId'],
-      ownerName: json['ownerName'],
+      createdUserId: json['createdUserId'],
+      createdUserName: json['createdUserName'],
+      owners: json['owners'],
     );
   }
 }

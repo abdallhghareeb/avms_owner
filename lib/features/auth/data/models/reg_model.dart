@@ -1,60 +1,70 @@
-class RegModel {
-  int? statusCode;
-  dynamic meta;
-  bool? succeeded;
-  dynamic message;
-  dynamic errors;
-  Data? data;
 
-  RegModel(
-      {this.statusCode,
-        this.meta,
-        this.succeeded,
-        this.message,
-        this.errors,
-        this.data});
+import 'package:avms/features/auth/domain/entities/register.dart';
 
-  RegModel.fromJson(Map<String, dynamic> json) {
-    statusCode = json['statusCode'];
-    meta = json['meta'];
-    succeeded = json['succeeded'];
-    message = json['message'];
-    errors = json['errors'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+class RegisterResponseModel extends RegisterResponse {
+  RegisterResponseModel({
+    required int statusCode,
+    dynamic meta,
+    required bool succeeded,
+    required String message,
+    dynamic errors,
+    required RegisterDataModel data,
+  }) : super(
+    statusCode: statusCode,
+    meta: meta,
+    succeeded: succeeded,
+    message: message,
+    errors: errors,
+    data: data,
+  );
+
+  factory RegisterResponseModel.fromJson(Map<String, dynamic> json) {
+    return RegisterResponseModel(
+      statusCode: json['statusCode'] ?? 0,
+      meta: json['meta'],
+      succeeded: json['succeeded'] ?? false,
+      message: json['message'] ?? '',
+      errors: json['errors'],
+      data: RegisterDataModel.fromJson(json['data'] ?? {}),
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['statusCode'] = this.statusCode;
-    data['meta'] = this.meta;
-    data['succeeded'] = this.succeeded;
-    data['message'] = this.message;
-    data['errors'] = this.errors;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
-    }
-    return data;
+    return {
+      'statusCode': statusCode,
+      'meta': meta,
+      'succeeded': succeeded,
+      'message': message,
+      'errors': errors,
+      'data': (data as RegisterDataModel).toJson(),
+    };
   }
 }
 
-class Data {
-  String? confirmMessage;
-  Null? token;
-  String? expiresOn;
+class RegisterDataModel extends RegisterData {
+  RegisterDataModel({
+    required String confirmMessage,
+    String? token,
+    required String expiresOn,
+  }) : super(
+    confirmMessage: confirmMessage,
+    token: token,
+    expiresOn: expiresOn,
+  );
 
-  Data({this.confirmMessage, this.token, this.expiresOn});
-
-  Data.fromJson(Map<String, dynamic> json) {
-    confirmMessage = json['confirmMessage'];
-    token = json['token'];
-    expiresOn = json['expiresOn'];
+  factory RegisterDataModel.fromJson(Map<String, dynamic> json) {
+    return RegisterDataModel(
+      confirmMessage: json['confirmMessage'] ?? '',
+      token: json['token'],
+      expiresOn: json['expiresOn'] ?? '',
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['confirmMessage'] = this.confirmMessage;
-    data['token'] = this.token;
-    data['expiresOn'] = this.expiresOn;
-    return data;
+    return {
+      'confirmMessage': confirmMessage,
+      'token': token,
+      'expiresOn': expiresOn,
+    };
   }
 }

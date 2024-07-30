@@ -96,7 +96,22 @@
   "Expired Date": "منتهي الصلاحية\n",
   "Dashboard":"الصفحة الرئيسية",
   "Create": "انشاء",
-  "Settings": "الاعدادات"
+  "Settings": "الاعدادات",
+  "SignUp": "تسجيل",
+  "ResetPassword": "إعادة تعيين كلمة المرور\n",
+  "Code": "كود",
+  "NewPassword": "كلمة سر جديدة",
+  "ConfirmPassword": "تأكيد كلمة السر\n",
+  "Profile": "بياناتك",
+  "GetToKnowYourData": "التعرف على بياناتك",
+  "ToUpDateYourInformation": "لتعديل بياناتك",
+  "Request": "طلب",
+  "SeeAll": "عرض الكل",
+  "Users": "المستخدمين",
+  "Update Your Profile": "تعديل البيانات"
+
+
+
 
 
 

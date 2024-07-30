@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_conts.dart';
-import 'package:avms/core/utils/app_size.dart';
 import 'package:avms/core/utils/app_spaces.dart';
 import 'package:avms/core/utils/config.dart';
 import 'package:avms/core/utils/font_size.dart';
@@ -10,6 +9,9 @@ import 'package:avms/features/auth/presentation/widgets/validator.dart';
 import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_state.dart';
+import 'package:avms/services/api_service/dio_helper.dart';
+import 'package:avms/services/api_service/end_point.dart';
+import 'package:avms/services/local/cache_helper.dart';
 import 'package:avms/widgets/btn.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -17,11 +19,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../../auth/data/models/area_unit.dart';
 
 class CreateInvitationScreen extends StatefulWidget {
   const CreateInvitationScreen({super.key});
@@ -35,15 +41,22 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
   late TextEditingController? emailController;
   late TextEditingController? phoneController;
   late TextEditingController? nationalIdController;
+  late Future<List<Area>> futureAreasWithOwnerId;
+  late Future<List<Area>> futureAreas;
+  String? userid = CacheHelper.userId;
+  static int? selectedAreaIdWithOwnerId;
   final createInvitationFormKey = GlobalKey<FormState>();
-  File? _image;
+  XFile? _image;
   final pickedImage = ImagePicker();
+  var imagePicked;
 
   void UploadImage() async {
-    var imagePicked = await pickedImage.pickImage(source: ImageSource.gallery);
+    imagePicked = await pickedImage.pickImage(source: ImageSource.gallery);
     setState(() {
       if (imagePicked != null) {
-        _image = File(imagePicked.path);
+        _image = imagePicked;
+
+        print(imagePicked.path);
       } else {
         print('no Image Picked');
       }
@@ -57,6 +70,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
 
   bool pressed = false;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +79,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
     emailController = TextEditingController();
     phoneController = TextEditingController();
     nationalIdController = TextEditingController();
+    futureAreasWithOwnerId = DioHelper.fetchAreasWi(userid!);
+    futureAreas = fetchAreas();
   }
 
   void clearCreateInvitationsFields() {
@@ -80,7 +97,15 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
       ];
     });
   }
+  Future<List<Area>> fetchAreas() async {
+    return await DioHelper.fetchAreasWi(userid!);
+  }
 
+  void refreshAreas() {
+    setState(() {
+      futureAreas = fetchAreas(); // Re-fetch the areas
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LangCubit, LangState>(builder: (context, state) {
@@ -93,6 +118,13 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
               (context as Element).reassemble();
 
               HomeCubit.get(context).loadDashData();
+            }else if(state is CreateInvitationErrorState){
+              print(state.error);
+              Fluttertoast.showToast(msg: '${state.error}',
+              backgroundColor: Colors.red,
+                timeInSecForIosWeb: 3
+
+              );
             }
           },
           builder: (context, state) {
@@ -102,8 +134,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: Card(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)
-                    ),
+                        borderRadius: BorderRadius.circular(20)),
                     elevation: 0.5,
                     child: Padding(
                       padding: const EdgeInsetsDirectional.symmetric(
@@ -192,59 +223,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                 ),
                               ),
                             ),
-                            // TextFormField(
-                            //   enabled: false,
-                            //   decoration: TextFieldDecoration.copyWith(
-                            //     hintText: 'Register Date'.tr(),
-                            //     labelText: pressed == false
-                            //         ? null
-                            //         : dateTimeList == null
-                            //             ? 'No date and time range selected'
-                            //             : 'Register Date: ${DateFormat('dd-MM-yyyy  hh:mm a', "en_Us").format(dateTimeList!.first)}\nExpired Date: ${DateFormat(
-                            //                 'dd-MM-yyyy  hh:mm a',
-                            //                 "en_Us",
-                            //               ).format(dateTimeList!.last)}',
-                            //     labelStyle: TextStyle(
-                            //       fontSize: FontSize.s14,
-                            //       color: Colors.black,
-                            //     ),
-                            //     prefixIcon: Icon(
-                            //       Icons.date_range,
-                            //       color: AppColors.appColor,
-                            //     ),
-                            //   ),
-                            //   // enabled: false,
-                            //   validator: (value) {
-                            //     if (dateTimeList == null)
-                            //       return 'requiredMSG'.tr();
-                            //     return null;
-                            //   },
-                            //   onTap: () async {
-                            //     FocusScope.of(context).unfocus();
-                            //     dateTimeList =
-                            //         await showOmniDateTimeRangePicker(
-                            //       context: context,
-                            //       is24HourMode: false,
-                            //       barrierDismissible: false,
-                            //       startFirstDate: DateTime.now(),
-                            //       endFirstDate: DateTime.now(),
-                            //       startInitialDate: DateTime.now(),
-                            //       endInitialDate:
-                            //           DateTime.now().add(Duration(days: 1)),
-                            //       startLastDate:
-                            //           DateTime.now().add(Duration(days: 30)),
-                            //       endLastDate:
-                            //           DateTime.now().add(Duration(days: 30)),
-                            //       borderRadius: BorderRadius.only(
-                            //         topLeft: Radius.circular(10.0),
-                            //         topRight: Radius.circular(10.0),
-                            //       ),
-                            //       type: OmniDateTimePickerType.dateAndTime,
-                            //     );
-                            //     logger.w("dateTimeList ${dateTimeList}");
-                            //     setState(() => pressed = true);
-                            //   },
-                            // ),
+
                             Row(
                               children: [
                                 Expanded(
@@ -407,6 +386,59 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                 ),
                               ],
                             ),
+                            AppSpaces.vSpace20,
+                            Padding(
+                              padding: EdgeInsets.only(right: 150.w),
+                              child: Text(
+                                'Choice your Unit :',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: FontSize.s16,
+                                    color: AppColors.appColor),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(smallPadding),
+                              child: FutureBuilder<List<Area>>(
+                                future: futureAreas,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return Center(child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(child:   Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
+                                      child: ElevatedButton(
+                                        onPressed: refreshAreas,
+                                        child: Text("Refresh Areas"),
+                                      ),
+                                    ),);
+                                  } else if (snapshot.hasData) {
+                                    List<Area> areas = snapshot.data!;
+                                    return DropdownButton<int>(
+                                      hint: Text('Select an Area'),
+                                      value: selectedAreaIdWithOwnerId,
+                                      onChanged: (int? newValue) {
+                                        setState(() {
+                                          selectedAreaIdWithOwnerId = newValue;
+                                        });
+                                      },
+                                      items: areas.map<DropdownMenuItem<int>>(
+                                              (Area area) {
+                                            return DropdownMenuItem<int>(
+                                              value: area.id,
+                                              child: Text(area.name),
+                                            );
+                                          }).toList(),
+                                    );
+                                  } else {
+                                    return Center(child: Text('No data'));
+                                  }
+                                },
+                              ),
+                            ),
+
+
                             InkWell(
                               onTap: () {
                                 UploadImage();
@@ -420,7 +452,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                       Icon(Icons.camera_alt_outlined),
                                       AppSpaces.hSpace16,
                                       Text(
-                                        'UpLoad',
+                                        'UpLoad Your Card photo',
                                         style: TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold),
@@ -441,7 +473,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                     borderRadius: BorderRadius.circular(20)),
                                 child: _image != null
                                     ? Image.file(
-                                        _image!.absolute,
+                                        File(_image!.path),
                                         fit: BoxFit.cover,
                                       )
                                     : Center(
@@ -465,8 +497,6 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                   if (!createInvitationFormKey.currentState!
                                       .validate()) return;
 
-                                  // createInvitationFormKey.currentState!.save();
-
                                   await HomeCubit.get(context).createInvitation(
                                     context: context,
                                     name: nameController!.text,
@@ -475,7 +505,15 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                     nationalId: nationalIdController!.text,
                                     registerDate: dateTimeList!.first,
                                     expiredDate: dateTimeList!.last,
+                                    file: _image!,
+                                    AreaId: '$selectedAreaIdWithOwnerId',
+                                    token: TokenSave!,
                                   );
+
+                                  // Clear the image after successful creation
+                                  setState(() {
+                                    _image = null;
+                                  });
 
                                   clearCreateInvitationsFields();
                                   (context as Element).reassemble();

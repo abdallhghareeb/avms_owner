@@ -6,6 +6,8 @@ import 'package:avms/features/home/presentation/screens/more_setting/account/acc
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/apearance_screen.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_state.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/profile/profile_screen.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/update_profile/users_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
@@ -59,6 +61,25 @@ class _MoreSettingScreenState extends State<MoreSettingScreen> {
                 );
               },
             ),
+            ListTile(
+              title: Text(Config.Localization['Profile']),
+              subtitle: Text(Config.Localization['GetToKnowYourData']),
+              leading: Icon(
+                Icons.person,
+              ),
+              onTap: () {
+                // Navigate to appearance settings screen
+                // You can implement the navigation logic here
+                PersistentNavBarNavigator.pushNewScreenWithRouteSettings(
+                  context,
+                  settings: RouteSettings(name: UserScreen.route),
+                  screen: UserScreen(),
+                  withNavBar: true,
+                  pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                );
+              },
+            ),
+
            BlocBuilder<HomeCubit,HomeState>(builder: (context,state){
              return  ListTile(
                title: Text(Config.Localization['about']),

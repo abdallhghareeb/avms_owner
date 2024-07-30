@@ -1,311 +1,399 @@
-import 'dart:developer';
-import 'package:avms/core/utils/app_color.dart';
-import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/app_size.dart';
-import 'package:avms/core/utils/app_spaces.dart';
-import 'package:avms/core/utils/config.dart';
-import 'package:avms/core/utils/font_size.dart';
-import 'package:avms/features/home/data/models/visit_model.dart';
-import 'package:avms/features/home/domain/entities/visit.dart';
-import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
-import 'package:avms/features/home/presentation/screens/dashboard/expired_invitations/expired_invitations_screen.dart';
-import 'package:avms/features/home/presentation/screens/dashboard/today_invitations/today_invitations_screen.dart';
-import 'package:avms/features/home/presentation/screens/dashboard/upcoming_invitations/upcoming_invitation_screen.dart';
-import 'package:avms/helpers/Localization.dart';
-import 'package:avms/widgets/carousel_card.dart';
-import 'package:avms/widgets/item_card.dart';
-import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
-import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:avms/core/utils/app_values.dart';
+import 'package:avms/core/utils/config.dart';
+import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
+import 'package:avms/widgets/carousel_card.dart';
+import 'package:avms/features/home/data/models/dashInfo_Model.dart';
+import 'package:avms/features/home/data/models/get_all_inv.dart';
+import 'package:avms/services/api_service/dio_helper.dart';
+import 'package:avms/services/api_service/end_point.dart';
 
-// Define a screen for the dashboard
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
-
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  _DashboardScreenState createState() => _DashboardScreenState();
 }
 
-// State class for the DashboardScreen
 class _DashboardScreenState extends State<DashboardScreen> {
+  late Future<DashboardTabsInfo?> _dashboardInfo = Future.value(null);
+  bool _hasNetwork = true;
+  int _currentPage = 1;
+  bool _isLoadingMore = false;
+  List<VisitModel> _recentInvitations = [];
+
   @override
   void initState() {
     super.initState();
+    _checkNetworkAndFetchData();
+  }
+
+  Future<void> _checkNetworkAndFetchData() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _hasNetwork = false;
+      });
+    } else {
+      setState(() {
+        _hasNetwork = true;
+        _currentPage = 1; // Reset to first page on network check
+        _dashboardInfo = fetchDashInfo();
+        _fetchRecentInvitations();
+      });
+    }
+  }
+
+  Future<void> _fetchRecentInvitations({int pageNumber = 1}) async {
+    setState(() {
+      _isLoadingMore = true;
+    });
+    try {
+      final List<VisitModel> newInvitations = await DioHelper.fetchData(
+        token: TokenSave!,
+        parameters: {
+          "PageNumber": pageNumber,
+        },
+      );
+      setState(() {
+        if (pageNumber == 1) {
+          _recentInvitations = newInvitations;
+        } else {
+          _recentInvitations.addAll(newInvitations);
+        }
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      print('Error fetching recent invitations: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
+  Future<DashboardTabsInfo?> fetchDashInfo() async {
+    try {
+      final response = await Dio().get(
+        '$BASE_URL$SaveApiUrl$getDashInfoEndPoint',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $TokenSave',
+          },
+        ),
+      );
+      if (response.statusCode == 200) {
+        return DashboardTabsInfo.fromJson(response.data);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching dashboard info: $e');
+      return null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get the instance of HomeCubit using the context
-    HomeCubit homeCubit = HomeCubit.get(context);
-
     return Scaffold(
-      // Body of the screen
-      body: BlocConsumer<HomeCubit, HomeState>(
-        listener: (context, state) async {
-          // Listener for state changes
-          if (state is CreateInvitationSuccessState) {
-            // Handle success state
-            // HomeCubit.get(context).changeNavBar(index: 0);
-            setState(() {});
-          }
-          if (state is GetInvitationByIdLoadingState) {
-            // Handle loading state for getting invitation by ID
-          }
-          if (state is GetInvitationByIdSuccess) {
-            // Handle success state for getting invitation by ID
-          }
-          if (state is GetInvitationByIdError) {
-            // Handle error state for getting invitation by ID
-          }
-        },
-        builder: (context, state) {
-          // Build the UI based on the state of the HomeCubit
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(
-                vertical: smallPadding,
-              ),
-              child: RefreshIndicator(
-                displacement: 250,
-                backgroundColor: AppColors.offWhite,
-                color: AppColors.primaryColor,
-                strokeWidth: 3,
-                triggerMode: RefreshIndicatorTriggerMode.onEdge,
-                onRefresh: () async {
-                  // Refresh the data when pulling down
-                  HomeCubit.get(context).loadDashData();
-                },
-                child: Column(
-                  children: [
-                    // Conditional builder for handling loading state or no data state
-                    ConditionalBuilder(
-                      condition: state is GetDashInfoLoadingState ||
-                          HomeCubit.get(context).info == null,
-                      builder: (context) => Shimmer.fromColors(
-                        // Shimmer effect for loading state
-                        enabled: true,
-                        baseColor: Colors.grey.shade400,
-                        highlightColor: Colors.grey.shade100,
-                        child: CarouselSlider(
-                          // Carousel for displaying cards with information
-                          options: CarouselOptions(
-                            height: SizeConfig.screenHeight * 0.16,
-                            viewportFraction: 0.8,
-                            initialPage: 0,
-                            enableInfiniteScroll: true,
-                            reverse: false,
-                            autoPlay: true,
-                            autoPlayInterval: Duration(seconds: 3),
-                            autoPlayAnimationDuration:
-                                Duration(milliseconds: 800),
-                            autoPlayCurve: Curves.fastOutSlowIn,
-                            enlargeCenterPage: true,
-                            enlargeFactor: 0.17,
-                          ),
-                          items: [
-                            // Placeholder cards for loading state
-                            CarouselCard(
-                              itemTitle: "Loading..",
-                              itemCount: 0,
-                              itemColor: AppColors.appColor,
-                              itemIcon: Icons.class_,
-                            ),
-                            CarouselCard(
-                              itemTitle: "Loading..",
-                              itemCount: 0,
-                              itemColor: AppColors.appColor,
-                              itemIcon: Icons.expand,
-                            ),
-                            CarouselCard(
-                              itemTitle: "Loading..",
-                              itemCount: 0,
-                              itemColor: AppColors.appColor,
-                              itemIcon: Icons.access_time_filled_rounded,
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Fallback for when data is available
-                      fallback: (context) => CarouselSlider(
-                        // Carousel for displaying cards with information
-                        options: CarouselOptions(
-                          height: SizeConfig.screenHeight * 0.16,
-                          viewportFraction: 0.8,
-                          initialPage: 0,
-                          enableInfiniteScroll: true,
-                          reverse: false,
-                          autoPlay: true,
-                          autoPlayInterval: Duration(seconds: 3),
-                          autoPlayAnimationDuration:
-                              Duration(milliseconds: 800),
-                          autoPlayCurve: Curves.fastOutSlowIn,
-                          enlargeCenterPage: true,
-                          enlargeFactor: 0.17,
-                        ),
-                        items: [
-                          // GestureDetector for tapping on the card to navigate to a specific screen
-                          GestureDetector(
-                            onTap: () =>
-                                PersistentNavBarNavigator.pushNewScreen(
-                              context,
-                              screen: TodayInvitationsScreen(),
-                              withNavBar: true,
-                              pageTransitionAnimation:
-                                  PageTransitionAnimation.cupertino,
-                            ),
-                            child: CarouselCard(
-                              itemTitle: "today Invitations",
-                              itemCount:
-                                  HomeCubit.get(context).info!.totalTodayVisits,
-                              itemColor: AppColors.appColor,
-                              itemIcon: Icons.class_,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () =>
-                                PersistentNavBarNavigator.pushNewScreen(
-                              context,
-                              screen: UpComingInvitationsScreen(),
-                              withNavBar: true,
-                              pageTransitionAnimation:
-                                  PageTransitionAnimation.cupertino,
-                            ),
-                            child: CarouselCard(
-                              itemTitle: "Upcoming Invitations",
-                              itemCount: HomeCubit.get(context)
-                                  .info!
-                                  .totalUpcomingVisits,
-                              itemColor: AppColors.appColor,
-                              itemIcon: Icons.scale,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () =>
-                                PersistentNavBarNavigator.pushNewScreen(
-                              context,
-                              screen: ExpiredInvitationsScreen(),
-                              withNavBar: true,
-                              pageTransitionAnimation:
-                                  PageTransitionAnimation.cupertino,
-                            ),
-                            child: CarouselCard(
-                              itemTitle: "Expired Invitations",
-                              itemCount: HomeCubit.get(context)
-                                      .info
-                                      ?.totalExpiredVisits ??
-                                  0,
-                              itemColor: AppColors.appColor,
-                              itemIcon: Icons.access_time_filled_rounded,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    AppSpaces.vSpace20,
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: midPadding),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                           Config.Localization['recentlyVisits'],
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: FontSize.s20,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // Navigate to view all recently visited screen
-                              HomeCubit.get(context).changeNavBar(index: 2);
-                            },
-                            child: Text(
-                              Config.Localization['viewAll'],
-                              style: TextStyle(
-                                color: AppColors.appColor,
-                                fontSize: FontSize.s20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Expanded widget for taking all available vertical space
-                    Expanded(
-                      child: ConditionalBuilder(
-                        condition: state is GetInvitationLoadingState,
-                        builder: (BuildContext context) => Shimmer.fromColors(
-                          // Shimmer effect for loading state
-                          enabled: true,
-                          baseColor: Colors.grey.shade400,
-                          highlightColor: Colors.grey.shade100,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            physics: BouncingScrollPhysics(),
-                            itemBuilder: (context, index) => ItemCard(
-                              // Placeholder data for loading state
-                              inv: VisitModel(
-                                id: "id",
-                                fullName: "",
-                                registrationDate: DateTime.now().toString(),
-                                documentId: "",
-                                cardNumber: "",
-                                areaName: "",
-                                expiryDate: "",
-                                qrLink: "",
-                                accessInDate: "",
-                                accessOutDate: "",
-                                documentImage: "",
-                                isSuccess: true,
-                                status: "",
-                              ),
-                            ),
-                            itemCount: 6,
-                          ),
-                        ),
-                        // Fallback for when data is available
-                        fallback: (BuildContext context) => ConditionalBuilder(
-                          condition: homeCubit.todayInvitations.isNotEmpty,
-                          builder: (BuildContext context) => ListView.builder(
-                            shrinkWrap: true,
-                            physics: BouncingScrollPhysics(),
-                            itemBuilder: (context, index) => ItemCard(
-                              // Pass data to the ItemCard widget
-                              inv: homeCubit.todayInvitations[index],
-                            ),
-                            itemCount: homeCubit.todayInvitations.length,
-                          ),
-                          // Fallback for when there is no data
-                          fallback: (BuildContext context) => Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Lottie.asset(
-                                    "assets/images/animations/no_data.json"),
-                                Text(
-                                  "No Data Found",
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: RefreshIndicator(
+            onRefresh: _checkNetworkAndFetchData,
+            child: _hasNetwork
+                ? _buildDashboardContent()
+                : _buildNoNetworkContent(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FutureBuilder<DashboardTabsInfo?>(
+          future: _dashboardInfo,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Shimmer.fromColors(
+                baseColor: Colors.grey.shade400,
+                highlightColor: Colors.grey.shade100,
+                child: CarouselSlider(
+                  options: CarouselOptions(
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    viewportFraction: 1.0,
+                    autoPlay: true,
+                  ),
+                  items: [
+                    CarouselCard(
+                      itemTitle: "Loading...",
+                      itemCount: 0,
+                      itemColor: Colors.blue,
+                      itemIcon: Icons.class_,
                     ),
                   ],
                 ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data == null) {
+              return Center(child: Text('No data available'));
+            } else {
+              final info = snapshot.data!;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CarouselSlider(
+                    options: CarouselOptions(
+                      height: SizeConfig.screenHeight * 0.25,
+                      viewportFraction: 1.0,
+                      initialPage: 0,
+                      enableInfiniteScroll: true,
+                      reverse: false,
+                      autoPlay: true,
+                      autoPlayInterval: Duration(seconds: 3),
+                      autoPlayAnimationDuration: Duration(milliseconds: 800),
+                      autoPlayCurve: Curves.fastOutSlowIn,
+                      enlargeCenterPage: true,
+                      enlargeFactor: 0.17,
+                    ),
+                    items: [
+                      CarouselCard(
+                        itemTitle: "Total Invitations",
+                        itemCount: info.totalInvitation,
+                        itemColor: Colors.blue,
+                        itemIcon: Icons.class_,
+                      ),
+                      CarouselCard(
+                        itemTitle: "Entered",
+                        itemCount: info.entered,
+                        itemColor: Colors.green,
+                        itemIcon: Icons.transit_enterexit,
+                      ),
+                      CarouselCard(
+                        itemTitle: "Exited",
+                        itemCount: info.exited,
+                        itemColor: Colors.red,
+                        itemIcon: Icons.exit_to_app,
+                      ),
+                      CarouselCard(
+                        itemTitle: "Pending",
+                        itemCount: info.pending,
+                        itemColor: Colors.orange,
+                        itemIcon: Icons.pending,
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }
+          },
+        ),
+        Padding(
+          padding: EdgeInsets.only(left: 250.w),
+          child: TextButton(
+            onPressed: () {
+              HomeCubit.get(context).changeNavBar(index: 2);
+            },
+            child: Text(
+              Config.Localization['SeeAll'],
+              style: TextStyle(fontSize: AppSize.s18),
+            ),
+          ),
+        ),
+        Expanded(
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (scrollNotification) {
+              if (scrollNotification is ScrollEndNotification &&
+                  scrollNotification.metrics.pixels ==
+                      scrollNotification.metrics.maxScrollExtent &&
+                  !_isLoadingMore) {
+                _currentPage++;
+                _fetchRecentInvitations(pageNumber: _currentPage);
+              }
+              return false;
+            },
+            child: ListView.builder(
+              itemCount:
+                  _recentInvitations.length > 5 ? 5 : _recentInvitations.length,
+              itemBuilder: (context, index) {
+                VisitModel invitation = _recentInvitations[index];
+                return GestureDetector(
+                  onTap: () => _showDetailsDialog(context, invitation),
+                  child: Container(
+                    margin:
+                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    padding: EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 60,
+                          height: 60,
+                          child: Image.network(
+                            invitation.qrLink ?? '',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Image.asset('assets/placeholder_image.png'),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                invitation.fullName ?? '',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Card Number: ${invitation.cardNumber ?? ''}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              Text(
+                                'Created At: ${invitation.expiryDate ?? ''}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              Text(
+                                'Registration Date: ${invitation.registrationDate ?? ''}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        if (_isLoadingMore)
+          SizedBox(
+            height: 50, // Adjust height as needed
+            width: 50, // Adjust width as needed
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 3.0, // Adjust stroke width as needed
               ),
             ),
-          );
-        },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildNoNetworkContent() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.signal_wifi_off, size: 80, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'No internet connection.',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Check your connection and try again.',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _checkNetworkAndFetchData,
+            child: Text('Retry'),
+          ),
+        ],
       ),
+    );
+  }
+
+  void _showDetailsDialog(BuildContext context, VisitModel invitation) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(invitation.fullName ?? 'No Name'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (invitation.qrLink != null && invitation.qrLink!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: SizedBox(
+                    width: 150,
+                    height: 150,
+                    child: Image.network(
+                      invitation.qrLink!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Image.asset('assets/placeholder_image.png'),
+                    ),
+                  ),
+                ),
+              Text('Card Number: ${invitation.cardNumber ?? 'N/A'}'),
+              Text('Created At: ${invitation.expiryDate ?? 'N/A'}'),
+              Text(
+                  'Registration Date: ${invitation.registrationDate ?? 'N/A'}'),
+            ],
+          ),
+          actions: [
+            BlocListener<HomeCubit, HomeState>(
+              listener: (context, state) {
+                // handle HomeCubit states if needed
+              },
+              child: TextButton(
+                onPressed: () async {
+                  HomeCubit cubit = HomeCubit.get(context);
+                  await cubit.shareImage(invitation.qrLink!);
+                },
+                child: Text('Reshare'),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

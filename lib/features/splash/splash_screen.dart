@@ -2,8 +2,11 @@ import 'package:avms/core/utils/app_size.dart';
 import 'package:avms/core/utils/app_strings.dart';
 import 'package:avms/features/auth/presentation/screens/enter_your_baseUrl.dart';
 import 'package:avms/features/auth/presentation/screens/login_screen.dart';
+import 'package:avms/features/auth/presentation/screens/register_screen.dart';
+import 'package:avms/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
 import 'package:avms/features/home/presentation/screens/home_screen.dart';
+import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -24,9 +27,19 @@ class _SplashScreenState extends State<SplashScreen> {
         const Duration(seconds: 2),
       ).whenComplete(
         () {
-          if (CacheHelper.isLoginBefore) {
+          if(SaveNavToLoginWhenSaveApiUrl==true){
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
+
+          }else if (CacheHelper.isLoginBefore) {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
-          } else {
+          } else if(RigisterSave=='Registration successful'&& ResetPassSave!='SuccessReset'){
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>ResetPasswordScreen()));
+          }else if(RigisterSave=='Registration successful'&& ResetPassSave=='SuccessReset'){
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
+          }
+          else if(RigisterSave!='Registration successful'&&SaveApiUrl!= null){
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>RegisterScreen()));
+          } else if(RigisterSave!='Registration successful'&& ResetPassSave!='SuccessReset'&& SaveApiUrl==null){
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>ConfigScreen()));
           }
         },

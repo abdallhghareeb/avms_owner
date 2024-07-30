@@ -96,7 +96,22 @@
   "Expired Date": "Expired Date",
   "Dashboard": "Dashboard",
   "Create": "Create",
-  "Settings": "Settings"
+  "Settings": "Settings",
+  "SignUp": "SignUp",
+  "ResetPassword": "ResetPassword",
+  "Code": "Code",
+  "NewPassword": "NewPassword",
+  "ConfirmPassword": "ConfirmPassword",
+  "Profile": "Profile",
+  "GetToKnowYourData": "Get to know your data\n",
+  "ToUpDateYourInformation": "ToUpDateYourInformation",
+  "Request": "Request",
+  "SeeAll": "See All",
+  "Users": "Users",
+  "Update Your Profile": "Update Your Profile"
+
+
+
 
 
 }

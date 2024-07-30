@@ -1,3 +1,4 @@
+import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/config.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_cubit.dart';
@@ -20,11 +21,12 @@ class _AppearanceScreenState extends State<AppearanceScreen> {
   Widget build(BuildContext context) {
     return  BlocBuilder<LangCubit,LangState>(builder: (context,state){
       return Scaffold(
-
         appBar: AppBar(
           title: Text(
             Config.Localization['Appearance'],
+            style: TextStyle(color: Colors.white),
           ),
+          backgroundColor: AppColors.appColor, // Example color
         ),
 
         body: ListView(

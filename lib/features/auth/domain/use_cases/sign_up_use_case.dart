@@ -1,3 +1,6 @@
+import 'package:avms/features/auth/data/models/reg_model.dart';
+import 'package:avms/features/auth/data/models/register_model.dart';
+import 'package:avms/features/auth/domain/entities/register.dart';
 import 'package:avms/features/auth/domain/entities/user.dart';
 import 'package:avms/features/auth/domain/repositories/auth_repo.dart';
 
@@ -6,11 +9,12 @@ class SignUpUseCase {
 
   SignUpUseCase({required this.authRepo});
 
-  Future<User?> execute(
-      String userName,
-      String phone,
-      String uniqCode,
-      String email,String AreaIds
+  Future<RegisterModel?> execute(
+      dynamic userName,
+      dynamic phone,
+      dynamic uniqCode,
+      dynamic email,dynamic AreaIds,dynamic roles,
+      dynamic file
 
 
       ) {
@@ -19,7 +23,8 @@ class SignUpUseCase {
       phone: phone,
       uniqCode: uniqCode,
       email: email,
-      AreaIds: AreaIds
+      AreaIds: AreaIds,
+      roles: roles, file:file
     );
   }
 }

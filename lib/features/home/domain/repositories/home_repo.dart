@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:avms/features/home/domain/entities/Qr.dart';
 import 'package:avms/features/home/domain/entities/info.dart';
 import 'package:avms/features/home/domain/entities/visit.dart';
+import 'package:image_picker/image_picker.dart';
 
 abstract class HomeRepo {
   Future<Info> getDashInfo();
@@ -14,6 +17,9 @@ abstract class HomeRepo {
     required String nationalId,
     required DateTime registerDate,
     required DateTime expiredDate,
+    required String AreaId,
+    required XFile file,
+    required String token,
     String? documentImage,
     String? cardNumber,
   });

@@ -1,6 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:avms/features/auth/data/models/reg_model.dart';
+import 'package:avms/features/auth/data/models/register_model.dart';
+import 'package:avms/features/auth/domain/entities/register.dart';
 import 'package:avms/features/auth/domain/entities/user.dart';
 import 'package:avms/features/auth/domain/use_cases/forget_password_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/reset_password_use_case.dart';
@@ -8,12 +12,15 @@ import 'package:avms/features/auth/domain/use_cases/sign_in_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/sign_out_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/sign_up_use_case.dart';
 import 'package:avms/features/auth/presentation/cubit/auth_state.dart';
+import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';
 import 'package:avms/services/local/dio_helper.dart';
 import 'package:device_info/device_info.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -34,68 +41,67 @@ class AuthCubit extends Cubit<AuthState> {
   }) : super(AuthInitial());
 
   User? user;
+  RegisterModel ?registerResponse;
 
-  Future<void> signIn(String email, String password) async {
+  Future<void> signIn(String email, String password,String uniqCode) async {
     emit(AuthLoading());
 
     try {
-      user = await signInUseCase.execute(email, password, await getId());
+      final user = await Future.any([
+        signInUseCase.execute(email, password,uniqCode),
+        Future.delayed(Duration(seconds: 15), () {
+          throw TimeoutException('Sign-in timed out');
+        }),
+      ]);
+
       if (user != null) {
-        await _cacheData(user!);
-        emit(AuthAuthenticated(user!));
+        await _cacheData(user);
+        emit(AuthAuthenticated(user));
       } else {
-        emit(AuthError('Authentication failed'));
+        emit(AuthError(''));
       }
+    } on TimeoutException catch (e) {
+      log('Sign-in timeout: ${e.message}');
+      emit(AuthError(e.message!));
     } catch (e) {
-      log("An error occurred ${e.toString()}");
-      emit(AuthError('An error occurred ${e.toString()}'));
+      log('An error occurred: ${e.toString()}');
+      emit(AuthError(e.toString()));
     }
   }
-  RegModel ?regModel;
-  void putReg({
-    required String? Name,
-    required String? Phone,
-    required String? uni,
-    required String? Email,
-    required String areaId,
+
+  Future<void> signUp({
+    required String email,
+    required String phone,
+    required String name,
+    required String uni,
+    required String area,
+    required String roles,
+    XFile? file,
   }) async {
-    // Check for null values
-    if (Name == null || Name.isEmpty ||
-        Phone == null || Phone.isEmpty ||
-        uni == null || uni.isEmpty ||
-        Email == null || Email.isEmpty ||
-        areaId.isEmpty) {
-      emit(AuthError1('All fields are required.'));
-      return;
-    }
-
     emit(AuthLoading1());
+    var formData = FormData.fromMap({
+      "Username": name,
+      "PhoneNumber": phone,
+      "UniqCode": uni,
+      "Email":email,
+      "AreaIds":area,
+      "Roles":roles,
+      "Image": await MultipartFile.fromFile(file!.path, filename: file.path.split('/').last)??'',
+    });
+    DioHelper.postSignUp(url: '$BASE_URL$SaveApiUrl$postSignUpEndPoint',parameters:formData ).then((value){
 
-    try {
-      // Make the API call
-      final response = await DioHelper.postData(
-        url: 'auth/register',
-        data: {
-          "Username": Name,
-          "PhoneNumber": Phone,
-          "UniqCode": uni,
-          "Email": Email,
-          "AreaIds": areaId,
-        },
-      );
+      registerResponse=  RegisterModel.fromJson(value.data);
+      print(registerResponse?.message);
+      print(registerResponse?.statusCode);
+      print(registerResponse!.data!.token);
+      emit(AuthAuthenticatedSignUp(registerResponse!));
+    }).catchError((e){
+      emit(AuthError1(e.toString(),registerResponse!));
+      print( e.toString());
+    });
 
-      // Parse the response
-      regModel = RegModel.fromJson(response.data);
-      print('Status Code => ${regModel?.statusCode}');
-      print('Status Message => ${regModel?.message}');
-      print('Token => ${regModel?.data?.token}');
-
-      emit(AuthAuthenticatedSignUp(regModel!));
-    } catch (e) {
-      // Check if the error is a DioError and handle accordingly
-      emit(AuthError1('An error occurred: ${e.toString()}'));
-    }
   }
+
 
 
   Future<void> forgotPassword(String email) async {
@@ -164,12 +170,12 @@ class AuthCubit extends Cubit<AuthState> {
       return 'Error';
     }
   }
-  String? valueBase;
-  void putYourBaseUrl(String value)async{
-    SharedPreferences pre= await SharedPreferences.getInstance();
-    valueBase=value;
-    BASE_URL=value;
-    pre.setString('baseUrl', '$BASE_URL}');
-
-  }
+  // String? valueBase;
+  // void putYourBaseUrl(String value)async{
+  //   SharedPreferences pre= await SharedPreferences.getInstance();
+  //   valueBase=value;
+  //   BASE_URL=value;
+  //   pre.setString('baseUrl', '$BASE_URL}');
+  //
+  // }
 }

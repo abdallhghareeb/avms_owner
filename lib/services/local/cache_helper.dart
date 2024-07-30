@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHelper {
@@ -11,10 +12,12 @@ class CacheHelper {
   static const String isLoginBeforeKey = 'isLoginBefore';
 
   static String? userToken;
+  static String? userId;
   static String? cachedEmail;
   static bool isLoginBefore = false;
 
   static Future init() async {
+
     sharedPreferences = await SharedPreferences.getInstance();
     isLoginBefore = CacheHelper.getInt(key: CacheHelper.isLoginBeforeKey) == 1
         ? true
@@ -76,6 +79,7 @@ class CacheHelper {
 
   static Future<bool> clear() async {
     sharedPreferences = await SharedPreferences.getInstance();
+
     return sharedPreferences.clear();
   }
 }

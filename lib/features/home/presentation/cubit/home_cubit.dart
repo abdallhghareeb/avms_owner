@@ -2,11 +2,15 @@ import 'dart:io';
 import 'dart:developer';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/config.dart';
+import 'package:avms/features/home/data/models/error_response_model.dart';
 import 'package:avms/features/home/domain/use_cases/cancel_invitation_use_case.dart';
 import 'package:avms/features/home/domain/use_cases/get_invitstion_by_id_use_case.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/profile/profile_screen.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/update_profile/users_update_screen.dart';
 import 'package:avms/widgets/alert_dialog.dart';
 import 'package:dialog_loader/dialog_loader.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
@@ -72,6 +76,7 @@ class HomeCubit extends Cubit<HomeState> {
       DashboardScreen(),
       CreateInvitationScreen(),
       InvitationsScreen(),
+      UpdateUsersScreen(),
       MoreSettingScreen(),
     ];
   }
@@ -108,6 +113,15 @@ class HomeCubit extends Cubit<HomeState> {
         ),
       ),
       PersistentBottomNavBarItem(
+        icon: Icon(CupertinoIcons.person_crop_rectangle_fill),
+        title: (Config.Localization['Users']),
+        activeColorPrimary: AppColors.appColor,
+        inactiveColorPrimary: CupertinoColors.systemGrey,
+        textStyle: TextStyle(
+          fontWeight: FontWeightManager.bold,
+        ),
+      ),
+      PersistentBottomNavBarItem(
         icon: Icon(CupertinoIcons.settings),
         title: (Config.Localization['Settings']),
         activeColorPrimary: AppColors.appColor,
@@ -117,6 +131,7 @@ class HomeCubit extends Cubit<HomeState> {
           fontWeight: FontWeightManager.bold,
         ),
       ),
+
     ];
   }
 
@@ -175,6 +190,11 @@ class HomeCubit extends Cubit<HomeState> {
           "Error in GetInvitationInvitationsErrorState"));
     }
   }
+  Future<void>getAllInv()async{
+    emit(GetInvitationLoadingState());
+    final res = await getInvitationUseCase.execute();
+    emit(GetInvitationByIdSuccess());
+    }
 
   // Method to load data for the dashboard
   Future<void> loadDashData() async {
@@ -190,20 +210,28 @@ class HomeCubit extends Cubit<HomeState> {
     required String nationalId,
     required DateTime registerDate,
     required DateTime expiredDate,
+    required String AreaId,
+    required XFile file,
+    required String token,
   }) async {
     emit(CreateInvitationLoadingState());
 
-    final res = await createInvitationUseCase.execute(
-      fullName: name,
-      phone: phone,
-      email: email,
-      nationalId: nationalId,
-      registerDate: registerDate,
-      expiredDate: expiredDate,
-    );
-    if (res.qrImage.isNotEmpty) {
-      // Show a dialog with QR code image and a "Share Image" button
-      showQrDialog(
+    try {
+      final res = await createInvitationUseCase.execute(
+        fullName: name,
+        phone: phone,
+        email: email,
+        nationalId: nationalId,
+        registerDate: registerDate,
+        expiredDate: expiredDate,
+        file: file,
+        AreaId: AreaId,
+        token: token,
+      );
+
+      if (res.qrImage.isNotEmpty) {
+        // Show a dialog with QR code image and a "Share Image" button
+        showQrDialog(
           context: context,
           qrImage: res.qrImage,
           buttonName: 'Share Image',
@@ -211,17 +239,25 @@ class HomeCubit extends Cubit<HomeState> {
           onPressed: () async {
             logger.w("qrImg ${res.qrImage}");
             HomeCubit cubit = HomeCubit.get(context);
-            await cubit.shareImage(
-              res.qrImage,
-            );
-          });
+            await cubit.shareImage(res.qrImage);
+          },
+        );
 
-      log("QrImage ${res.qrImage}");
-      emit(CreateInvitationSuccessState(qrImage: res.qrImage));
-    } else {
-      emit(CreateInvitationErrorState("Error in getDashInfo"));
+        log("QrImage ${res.qrImage}");
+        emit(CreateInvitationSuccessState(qrImage: res.qrImage));
+      } else {
+        emit(CreateInvitationErrorState("One or more validation errors occurred."));
+      }
+    } catch (e) {
+      // Handle the error
+      log("Error creating invitation: $e");
+      emit(CreateInvitationErrorState("One or more validation errors occurred."));
     }
   }
+
+
+// Function to handle image sharing (You need to implement this)
+
 
   // Method to cancel an invitation
   Future<void> cancelInvitation({
@@ -237,7 +273,7 @@ class HomeCubit extends Cubit<HomeState> {
       loadDashData();
       emit(CancelInvitationSuccess());
     } else {
-      emit(CancelInvitationError("Error in getDashInfo"));
+      emit(CancelInvitationError("Error in getDashInfo,the "));
     }
   }
 

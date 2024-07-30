@@ -1,20 +1,29 @@
+import 'package:avms/features/auth/data/models/area_unit.dart';
+import 'package:avms/features/auth/data/models/reg_model.dart';
+import 'package:avms/features/auth/data/models/register_model.dart';
+import 'package:avms/features/auth/domain/entities/register.dart';
 import 'package:avms/features/auth/domain/entities/user.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:image_picker/image_picker.dart';
 
 abstract class AuthRepo {
   Future<User?> signIn({
     required String userName,
     required String password,
-    required String uniqCode,
+    required String uniqCode
   });
-  Future<User?> signUp({
+  Future<RegisterModel?> signUp({
     required String userName,
     required String phone,
     required String uniqCode,
     required String email,
     required String AreaIds,
+    required String roles,
+     XFile file
+
 
   });
+  Future<AreaResponse> getAreaUnit();
 
   Future<void> signOut({required BuildContext context});
 
