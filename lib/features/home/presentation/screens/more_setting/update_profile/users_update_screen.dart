@@ -81,12 +81,7 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
         throw Exception('Failed to fetch users');
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: 'There is a problem with the network',
-        toastLength: Toast.LENGTH_SHORT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
+    
       _hasError = true;
       return []; // Return empty list to avoid further errors
     }
@@ -290,15 +285,22 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Something went wrong',
-                          style: TextStyle(color: Colors.red, fontSize: 18.sp),
-                        ),
+                        Icon(Icons.signal_wifi_off, size: 80, color: Colors.grey),
                         SizedBox(height: 16),
+                        Text(
+                          'No internet connection.',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Check your connection and try again.',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: _refreshUsers,
                           child: Text('Retry'),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
                         ),
                       ],
                     ),

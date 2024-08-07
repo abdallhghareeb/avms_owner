@@ -221,19 +221,7 @@ class DioHelper {
     required String url,
     required FormData parameters,
   }) async {
-
-    debugPrint('~parameters ${parameters}');
-    _debugPrintData(
-      title: '==postSignIn==',
-      data: parameters,
-      endPoint: url,
-    );
-
-
-    return await dio.post(
-      url,
-      data: parameters,
-    );
+    return await Dio().post(url, data: parameters);
   }
   static Future<Response> postData({
     required String url,

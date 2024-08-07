@@ -33,7 +33,6 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
   late final TextEditingController codeController;
   late final TextEditingController newPasswordController;
   late final TextEditingController confirmPasswordController;
-  late final TextEditingController emailController;
 
   final resetFormKey = GlobalKey<FormState>();
 
@@ -228,14 +227,13 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
 
                                           // Retrieve email from shared preferences or other source
 
-                                            AuthCubit.get(context).resetPassword(
-                                              email: SaveEmailForgetPass!,
-                                              code: codeController.text,
-                                              password: newPasswordController.text,
-                                              confirmPassword: confirmPasswordController.text,
-                                            );
-                                          }
-
+                                          AuthCubit.get(context).resetPassword(
+                                            email: SaveEmailForgetPass!,
+                                            code: codeController.text,
+                                            password: newPasswordController.text,
+                                            confirmPassword: confirmPasswordController.text,
+                                          );
+                                        },
                                       ),
                                       fallback: (context) => CircularProgressIndicator(),
                                     );
@@ -246,7 +244,7 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
                                       prefs.setString('ResetSave', 'SuccessReset');
                                       Fluttertoast.showToast(
                                         toastLength: Toast.LENGTH_LONG,
-                                        msg: "${'Success'}",
+                                        msg: "${'reset password successful'}",
                                         gravity: ToastGravity.BOTTOM,
                                         timeInSecForIosWeb: 5,
                                         backgroundColor: Colors.green,
@@ -255,7 +253,15 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
                                       );
                                       Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
                                     } else if (state is AuthAuthForgotPasswordError) {
-
+                                      Fluttertoast.showToast(
+                                        toastLength: Toast.LENGTH_LONG,
+                                        msg: state.errorMessage,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 5,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0,
+                                      );
                                     }
                                   },
                                 ),

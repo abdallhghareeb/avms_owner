@@ -500,7 +500,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 phone: phoneController!.text,
                                                 roles: selectedLocation,
                                                 name: nameController!.text,
-                                                uni: Id,
+                                                uni:Id ,
                                                 area: '$selectedAreaId');
                                           } else {
                                             ByteData? assetByteData =
@@ -576,7 +576,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 phone: phoneController!.text,
                                                 roles: selectedLocation,
                                                 name: nameController!.text,
-                                                uni: Id,
+                                                uni:Id,
                                                 area: '$value');
                                           }
                                         }
@@ -606,7 +606,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     Fluttertoast.showToast(
                                         toastLength: Toast.LENGTH_LONG,
                                         msg:
-                                            "Registration successful. Please check your email to confirm your email address and reset password.",
+                                            "${state.registerResponse.data!.confirmMessage}",
                                         gravity: ToastGravity.BOTTOM,
                                         timeInSecForIosWeb: 5,
                                         backgroundColor: Colors.green,
@@ -622,29 +622,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 ResetPasswordScreen()));
                                     print('zay el foul');
                                   } else if (state is AuthError1) {
-
-                                  if(state.registerModel.message==null){
-                                    Fluttertoast.showToast(
-                                        toastLength: Toast.LENGTH_LONG,
-                                        msg:
-                                        "Please Choice Unit",
-                                        gravity: ToastGravity.BOTTOM,
-                                        timeInSecForIosWeb: 5,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0);
-                                  }else{
-                                    Fluttertoast.showToast(
-                                        toastLength: Toast.LENGTH_LONG,
-                                        msg:
-                                        "${state.registerModel.message}",
-                                        gravity: ToastGravity.BOTTOM,
-                                        timeInSecForIosWeb: 5,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0);
-                                  }
-
+                                    if (selectedAreaIdWithOut == null &&
+                                        selectedAreaId == null) {
+                                      Fluttertoast.showToast(
+                                          toastLength: Toast.LENGTH_LONG,
+                                          msg: "Please Choice Unit",
+                                          gravity: ToastGravity.BOTTOM,
+                                          timeInSecForIosWeb: 5,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 16.0);
+                                    } else if (state.registerModel.message == null) {
+                                      Fluttertoast.showToast(
+                                          toastLength: Toast.LENGTH_LONG,
+                                          msg:
+                                              "License limit reached. Please update your license.",
+                                          gravity: ToastGravity.BOTTOM,
+                                          timeInSecForIosWeb: 5,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 16.0);
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          toastLength: Toast.LENGTH_LONG,
+                                          msg: "${state.registerModel.message}",
+                                          gravity: ToastGravity.BOTTOM,
+                                          timeInSecForIosWeb: 5,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 16.0);
+                                    }
                                   }
                                 },
                               ),

@@ -40,7 +40,7 @@ class _UserScreenState extends State<UserScreen> {
           return {'error': 'User not found'};
         }
       }
-      return {'error': 'Failed to fetch user data'};
+      return {'error': 'No internet connection.'};
     } catch (e) {
       return {'error': 'Failed to fetch user data'};
     }

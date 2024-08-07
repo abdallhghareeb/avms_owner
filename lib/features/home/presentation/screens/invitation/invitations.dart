@@ -206,8 +206,16 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
               if (_hasNetworkError) ...[
                 Icon(Icons.signal_wifi_off, size: 80, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No internet connection', style: TextStyle(fontSize: 18)),
-                SizedBox(height: 16),
+                Text(
+                  'No internet connection.',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Check your connection and try again.',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => _checkNetworkAndFetchData(isRefresh: true),
                   child: Text('Retry'),

@@ -80,7 +80,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
     } catch (e) {
       // Handle request error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again.')),
+        SnackBar(content: Text('Email is incorrect. Please try again.')),
       );
     } finally {
       setState(() {

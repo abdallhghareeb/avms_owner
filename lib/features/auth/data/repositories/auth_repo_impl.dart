@@ -1,17 +1,11 @@
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/exceptions.dart';
 import 'package:avms/features/auth/data/models/area_unit.dart';
-import 'package:avms/features/auth/data/models/auth_response_model.dart';
-import 'package:avms/features/auth/data/models/reg_model.dart';
 import 'package:avms/features/auth/data/models/register_model.dart';
 import 'package:avms/features/auth/data/models/user_model.dart';
-import 'package:avms/features/auth/domain/entities/register.dart';
-import 'package:avms/features/auth/domain/entities/response.dart';
 import 'package:avms/features/auth/domain/entities/user.dart';
 import 'package:avms/features/auth/domain/repositories/auth_repo.dart';
-import 'package:avms/features/auth/presentation/screens/enter_your_baseUrl.dart';
 import 'package:avms/features/auth/presentation/screens/login_screen.dart';
-import 'package:avms/features/splash/splash_screen.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';

@@ -68,7 +68,6 @@ class AuthCubit extends Cubit<AuthState> {
       emit(AuthError(e.toString()));
     }
   }
-
   Future<void> signUp({
     required String email,
     required String phone,
@@ -79,28 +78,71 @@ class AuthCubit extends Cubit<AuthState> {
     XFile? file,
   }) async {
     emit(AuthLoading1());
-    var formData = FormData.fromMap({
-      "Username": name,
-      "PhoneNumber": phone,
-      "UniqCode": uni,
-      "Email":email,
-      "AreaIds":area,
-      "Roles":roles,
-      "Image": await MultipartFile.fromFile(file!.path, filename: file.path.split('/').last)??'',
-    });
-    DioHelper.postSignUp(url: '$BASE_URL$SaveApiUrl$postSignUpEndPoint',parameters:formData ).then((value){
 
-      registerResponse=  RegisterModel.fromJson(value.data);
-      print(registerResponse?.message);
-      print(registerResponse?.statusCode);
-      print(registerResponse!.data!.token);
-      emit(AuthAuthenticatedSignUp(registerResponse!));
-    }).catchError((e){
-      emit(AuthError1(e.toString(),registerResponse!));
-      print( e.toString());
-    });
+    try {
+      MultipartFile? imageFile;
+      if (file != null) {
+        imageFile = await MultipartFile.fromFile(file.path, filename: file.path.split('/').last);
+      }
 
+      var formData = FormData.fromMap({
+        "Username": name,
+        "PhoneNumber": phone,
+        "UniqCode": uni,
+        "Email": email,
+        "AreaIds": area,
+        "Roles": roles,
+        "Image": imageFile ?? '', // Handle null case
+      });
+
+      // Making the POST request
+      var response = await DioHelper.postSignUp(
+        url: '$BASE_URL$SaveApiUrl$postSignUpEndPoint',
+        parameters: formData,
+      );
+
+      // Parse the response
+      if (response.data != null) {
+        registerResponse = RegisterModel.fromJson(response.data);
+
+        if (registerResponse?.statusCode == 200) {
+          print(registerResponse?.message);
+          print(registerResponse?.statusCode);
+          print(registerResponse?.data?.confirmMessage);
+          emit(AuthAuthenticatedSignUp(registerResponse!));
+        } else {
+          // Handle error response
+          emit(AuthError1(registerResponse?.message ?? 'Unknown error', registerResponse!));
+        }
+      } else {
+        emit(AuthError1('Received null response from server', registerResponse ?? RegisterModel(statusCode: 500, succeeded: false, message: 'Received null response from server')));
+      }
+    } catch (e) {
+      String errorMessage = 'Unexpected error';
+      if (e is DioError) {
+        if (e.response != null && e.response?.data != null) {
+          // Extract error message from API response
+          var errorData = e.response?.data;
+          if (errorData is Map<String, dynamic>) {
+            errorMessage = errorData['Message'] ?? 'Server error';
+          } else {
+            errorMessage = 'Unexpected error format';
+          }
+        } else {
+          // Network errors or other types of DioErrors
+          errorMessage = 'Network error: ${e.message}';
+        }
+      } else {
+        // Handle any other type of error
+        errorMessage = 'Unexpected error: ${e.toString()}';
+      }
+
+      // Ensure registerResponse is not null before using it
+      emit(AuthError1(errorMessage, registerResponse ?? RegisterModel(statusCode: 500, succeeded: false, message: errorMessage)));
+      print(errorMessage);
+    }
   }
+
 
 
 
