@@ -9,6 +9,7 @@ import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:avms/features/auth/presentation/cubit/auth_state.dart';
 import 'package:avms/features/auth/presentation/screens/reset_pass_to_forget_pass.dart';
 import 'package:avms/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:avms/features/auth/presentation/widgets/validator.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/widgets/alert_dialog.dart';
 import 'package:avms/widgets/btn.dart';
@@ -46,7 +47,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   }
 
   Future<void> _sendRecoveryEmail(String email) async {
-    final String apiUrl = '$BASE_URL$SaveApiUrl$postForgetPasswordEndPoint'; // Replace with your API URL
+    final String apiUrl =
+        '$BASE_URL$SaveApiUrl$postForgetPasswordEndPoint'; // Replace with your API URL
 
     setState(() {
       _isLoading = true; // Start loading
@@ -62,27 +64,29 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
         // Handle successful response
         final recoveryEmail = email; // Or extract from response if needed
         showCustomAdaptiveDialog(
-          context: context,
-          title: "resetPass",
-          content: "resetMessageSentSuccessfully",
-          showCancelButton: false,
-          onOkPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ResetPasswordToForgetPassScreen()),
-          ),
-        );
-      } else {
+            context: context,
+            title: "resetPass",
+            content: "resetMessageSentSuccessfully",
+            showCancelButton: false,
+            onOkPressed: () =>
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+                    builder: (context) => ResetPasswordToForgetPassScreen()), (
+                    route) => false));
+            } else {
         // Handle error response
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send recovery email. Please try again.')),
+        SnackBar(
+        content:
+        Text('Failed to send recovery email. Please try again.')),
         );
-      }
-    } catch (e) {
-      // Handle request error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Email is incorrect. Please try again.')),
-      );
-    } finally {
+        }
+        } catch (e)
+        {
+          // Handle request error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Email is incorrect. Please try again.')),
+          );
+        } finally {
       setState(() {
         _isLoading = false; // Stop loading
       });
@@ -100,10 +104,12 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               title: "resetPass",
               content: "resetMessageSentSuccessfully",
               showCancelButton: false,
-              onOkPressed: () => Navigator.pushReplacementNamed(
-                context, ResetPasswordScreen.route,
-                arguments: state.recoveryEmail,
-              ),
+              onOkPressed: () =>
+                  Navigator.pushReplacementNamed(
+                    context,
+                    ResetPasswordScreen.route,
+                    arguments: state.recoveryEmail,
+                  ),
             );
           }
         },
@@ -162,6 +168,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                                 vertical: midPadding,
                               ),
                               child: TextFormField(
+                                validator: nonEmptyValidator,
                                 controller: emailRecoveryController,
                                 decoration: TextFieldDecoration.copyWith(
                                   labelText: 'E-mail',
@@ -177,18 +184,24 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                               builder: (context, state) {
                                 return ConditionalBuilder(
                                   condition: !_isLoading,
-                                  builder: (context) => MainButton(
-                                    text: "${Config.Localization['send']}",
-                                    onPressed: () async {
-                                      final email = emailRecoveryController.text;
-                                      SharedPreferences prefs;
-                                      prefs = await SharedPreferences.getInstance();
-                                      SaveEmailForgetPass = emailRecoveryController.text;
-                                      prefs.setString('SaveEmailForgetPass', emailRecoveryController.text);
-                                      _sendRecoveryEmail(email);
-                                    },
-                                  ),
-                                  fallback: (context) => CircularProgressIndicator(),
+                                  builder: (context) =>
+                                      MainButton(
+                                        text: "${Config.Localization['send']}",
+                                        onPressed: () async {
+                                          final email =
+                                              emailRecoveryController.text;
+                                          SharedPreferences prefs;
+                                          prefs =
+                                          await SharedPreferences.getInstance();
+                                          SaveEmailForgetPass =
+                                              emailRecoveryController.text;
+                                          prefs.setString('SaveEmailForgetPass',
+                                              emailRecoveryController.text);
+                                          _sendRecoveryEmail(email);
+                                        },
+                                      ),
+                                  fallback: (context) =>
+                                      CircularProgressIndicator(),
                                 );
                               },
                             ),

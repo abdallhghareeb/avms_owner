@@ -1,5 +1,3 @@
-import 'package:avms/core/bloc/internet_cubit/internet_cubit.dart';
-import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_cubit.dart';

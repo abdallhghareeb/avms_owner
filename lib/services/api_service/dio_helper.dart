@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:avms/features/auth/data/models/reg_response.dart';
 import 'package:avms/features/auth/data/models/register_model.dart';
 import 'package:avms/features/auth/data/models/unit_model.dart';
+import 'package:avms/features/home/data/models/api_response.dart';
+import 'package:avms/features/home/data/models/document_type.dart';
 import 'package:avms/features/home/data/models/get_all_inv.dart';
+import 'package:avms/features/home/data/models/invtation_model.dart';
 import 'package:avms/features/home/domain/entities/visit.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/api_service/inter_ceptor.dart';
@@ -93,6 +96,31 @@ class DioHelper {
       throw Exception('Error: $e');
     }
   }
+  static Future<List<InvitationResponse>> fetchDataToInvtations({
+    required String token,
+    Map<String, dynamic>? parameters,
+  }) async {
+    try {
+      Response response = await dio.get(
+        '$BASE_URL$SaveApiUrl$getAllInvitationsEndPoint',
+        queryParameters: parameters,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> responseData = response.data['data']['data'];
+        return responseData.map((json) => InvitationResponse.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
 
 
   static Future<List<Area>> fetchAreasWi(String ownerId) async {
@@ -113,6 +141,7 @@ class DioHelper {
       throw Exception("Failed to load areas: $e");
     }
   }
+
 
  static Future<List<Area>> fetchAreasWithoutAllOwners(String unitId) async {
     try {
@@ -234,6 +263,18 @@ class DioHelper {
     };
     return await dio.post(url, data: data);
   }
+  static Future<Response> postDataToBlackList({
+    required String url,
+    required String token,
+    required FormData data,
+  }) async {
+    dio.options.headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    return await dio.post(url, data: data);
+  }
+
   static Future<Response> getAreaUnit({required String url}) async {
     _debugPrintData(
       title: '==GetAllInvitationsVisits==',
@@ -291,7 +332,18 @@ class DioHelper {
       data: jsonBody,
     );
   }
+  static Future<List<DocumentType>> getInvitationDocTypes() async {
+    Response response = await dio.get(
+      'http://egydns.ddns.net:8624/api/v1/InvitationDocType/get',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $TokenSave',
+        },
+      ),
+    );
 
+    return ApiResponse.fromJson(response.data).data;
+  }
   static Future<Response> getDashboardInfo({
     required String url,
   }) async {

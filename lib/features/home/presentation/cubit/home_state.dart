@@ -41,6 +41,24 @@ class CreateInvitationErrorState extends HomeState {
 
   CreateInvitationErrorState(this.error);
 }
+class BlackListLoading extends HomeState {}
+
+// Success state
+class BlackListSuccess extends HomeState {
+  final String message;
+
+  BlackListSuccess(this.message);
+
+}
+
+// Error state
+class BlackListError extends HomeState {
+  final String error;
+  final String? apiErrorMessage;
+
+  BlackListError(this.error, {this.apiErrorMessage});
+
+}
 
 class ShareInvitationQrLoadingState extends HomeState {}
 

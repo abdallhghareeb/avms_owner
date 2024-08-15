@@ -1,3 +1,4 @@
+
 import 'package:equatable/equatable.dart';
 
 class Visit extends Equatable {
@@ -9,6 +10,7 @@ class Visit extends Equatable {
   final String? cardNumber;
   final String? expiryDate;
   final String? areaName;
+  final int? areaId; // Added areaId as int
   final bool? isSuccess;
   final dynamic accessInDate;
   final dynamic accessOutDate;
@@ -28,7 +30,8 @@ class Visit extends Equatable {
     required this.accessOutDate,
     required this.documentImage,
     required this.isSuccess,
-    required this.status
+    required this.status,
+    required this.areaId, // Added areaId to constructor
   });
 
   bool isToday() {
@@ -52,7 +55,6 @@ class Visit extends Equatable {
   }
 
   bool isExpired() {
-
     DateTime now = DateTime.now();
     DateTime expiredDate = DateTime.parse(expiryDate == null
         ? registrationDate.toString()
@@ -81,22 +83,23 @@ class Visit extends Equatable {
 
   @override
   String toString() {
-    return 'Visit{id: $id, fullName: $fullName, registrationDate: $registrationDate, documentId: $documentId, documentImage: $documentImage, cardNumber: $cardNumber, expiryDate: $expiryDate, areaName: $areaName, qrLink: $qrLink, isSuccess: $isSuccess, accessInDate: $accessInDate, accessOutDate: $accessOutDate}';
+    return 'Visit{id: $id, fullName: $fullName, registrationDate: $registrationDate, documentId: $documentId, documentImage: $documentImage, cardNumber: $cardNumber, expiryDate: $expiryDate, areaName: $areaName, areaId: $areaId, qrLink: $qrLink, isSuccess: $isSuccess, accessInDate: $accessInDate, accessOutDate: $accessOutDate}';
   }
 
   @override
   List<Object?> get props => [
-        id,
-        fullName,
-        registrationDate,
-        documentId,
-        documentImage,
-        cardNumber,
-        expiryDate,
-        areaName,
-        qrLink,
-        isSuccess,
-        accessInDate,
-        accessOutDate,
-      ];
+    id,
+    fullName,
+    registrationDate,
+    documentId,
+    documentImage,
+    cardNumber,
+    expiryDate,
+    areaName,
+    areaId, // Added areaId to props
+    qrLink,
+    isSuccess,
+    accessInDate,
+    accessOutDate,
+  ];
 }

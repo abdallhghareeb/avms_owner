@@ -1,12 +1,10 @@
 import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/config.dart';
-import 'package:avms/core/utils/font_size.dart';
 import 'package:avms/features/home/data/models/get_all_users.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/update_profile/show_update.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -265,11 +263,10 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
       appBar: AppBar(
         title: Text(
           '${Config.Localization['Users']}',
-          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold,color: Colors.white),
+          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: AppColors.primaryColor, // Define your primary color in AppColors
         elevation: 4.0,
-
       ),
       body: Stack(
         children: [
@@ -307,7 +304,18 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
-                    child: Text('No users found'),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('No users found'),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _refreshUsers,
+                          child: Text('Refresh'),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
+                        ),
+                      ],
+                    ),
                   );
                 } else {
                   _users = snapshot.data!;
@@ -317,7 +325,6 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
                       final user = _users[index];
                       return ListTile(
                         contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-
                         leading: CircleAvatar(
                           radius: 20.0,
                           backgroundImage: NetworkImage(user.pictureUrl),
@@ -337,7 +344,6 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
                             ),
                           ),
                         ),
-
                         title: Text(
                           user.username,
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
@@ -374,9 +380,6 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
                           ],
                         ),
                       );
-
-
-
                     },
                   );
                 }
@@ -396,4 +399,5 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
       ),
     );
   }
+
 }

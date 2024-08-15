@@ -47,6 +47,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   XFile? _image;
   final pickedImage = ImagePicker();
   var imagePicked;
+  bool checkUnitAdmin = false;
+  bool checkUser = false;
 
   Future<String> getDeviceId() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -500,8 +502,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 phone: phoneController!.text,
                                                 roles: selectedLocation,
                                                 name: nameController!.text,
-                                                uni:Id ,
+                                                uni: Id,
                                                 area: '$selectedAreaId');
+                                            checkUser = true;
+                                            checkUnitAdmin = false;
                                           } else {
                                             ByteData? assetByteData =
                                                 await rootBundle.load(
@@ -532,6 +536,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 name: nameController!.text,
                                                 uni: Id,
                                                 area: '$selectedAreaId');
+                                            checkUser = true;
+                                            checkUnitAdmin = false;
                                           }
                                         } else if (selectedLocation ==
                                             'UnitAdmin') {
@@ -548,6 +554,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 name: nameController!.text,
                                                 uni: Id,
                                                 area: '$value');
+                                            checkUnitAdmin = true;
+                                            checkUser = false;
                                           } else {
                                             ByteData? assetByteData =
                                                 await rootBundle.load(
@@ -576,8 +584,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 phone: phoneController!.text,
                                                 roles: selectedLocation,
                                                 name: nameController!.text,
-                                                uni:Id,
+                                                uni: Id,
                                                 area: '$value');
+                                            checkUnitAdmin = true;
+                                            checkUser = false;
                                           }
                                         }
                                       },
@@ -615,15 +625,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                                     print(
                                         ' dattttta ${state.registerResponse.message}');
-                                    Navigator.push(
+                                    Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                ResetPasswordScreen()));
+                                                ResetPasswordScreen()),
+                                        (route) => false);
                                     print('zay el foul');
                                   } else if (state is AuthError1) {
                                     if (selectedAreaIdWithOut == null &&
-                                        selectedAreaId == null) {
+                                        checkUnitAdmin == true) {
                                       Fluttertoast.showToast(
                                           toastLength: Toast.LENGTH_LONG,
                                           msg: "Please Choice Unit",
@@ -632,7 +643,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           backgroundColor: Colors.red,
                                           textColor: Colors.white,
                                           fontSize: 16.0);
-                                    } else if (state.registerModel.message == null) {
+                                    } else if (selectedAreaId == null &&
+                                        checkUser == true) {
+                                      Fluttertoast.showToast(
+                                          toastLength: Toast.LENGTH_LONG,
+                                          msg: "Please Choice Unit",
+                                          gravity: ToastGravity.BOTTOM,
+                                          timeInSecForIosWeb: 5,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 16.0);
+                                    } else if (state.registerModel.message ==
+                                        null) {
                                       Fluttertoast.showToast(
                                           toastLength: Toast.LENGTH_LONG,
                                           msg:

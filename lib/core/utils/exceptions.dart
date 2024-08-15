@@ -4,7 +4,6 @@ import 'package:avms/features/auth/data/models/auth_response_model.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/widgets/snack_bar.dart';
 import 'package:dio/dio.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
@@ -236,13 +235,13 @@ Future handleRequest(Future<Response> Function() apiRequest,
   }
 }
 
-Future<void> handleCrash({required FlutterErrorDetails details}) async {
-  await FirebaseCrashlytics.instance
-      .recordError(
-    details.exception,
-    details.stack,
-  )
-      .then((value) {
-    debugPrint('recordError Success');
-  });
-}
+// Future<void> handleCrash({required FlutterErrorDetails details}) async {
+//   await FirebaseCrashlytics.instance
+//       .recordError(
+//     details.exception,
+//     details.stack,
+//   )
+//       .then((value) {
+//     debugPrint('recordError Success');
+//   });
+// }

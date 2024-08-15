@@ -49,6 +49,7 @@ class HomeRepoImpl extends HomeRepo {
     required DateTime expiredDate,
     required XFile file,
     required String token,
+    required int DocTypeId,
     documentImage,
     cardNumber,
   }) async {
@@ -64,6 +65,7 @@ class HomeRepoImpl extends HomeRepo {
       "expiryDate": DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'", "en_US").format(expiredDate.toUtc()),
       "AreaId": AreaId,
       'DeviceIp': '147',
+      'InvitDocType':DocTypeId
     });
 
     final res = await handleRequest(

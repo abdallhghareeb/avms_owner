@@ -16,6 +16,7 @@ class VisitModel extends Visit {
       expiryDate: json['expiryDate'],
       qrLink: json['qrLink'],
       status: json['statusValue'],
+      areaId: json['areaId']
     );
   }
 
@@ -33,6 +34,7 @@ class VisitModel extends Visit {
     required String? cardNumber,
     required bool? isSuccess,
     required String? status,
+    required int? areaId
   }) : super(
           id: id,
           fullName: fullName,
@@ -47,6 +49,7 @@ class VisitModel extends Visit {
           documentImage: documentImage,
           isSuccess: isSuccess,
           status: status,
+    areaId: areaId
         );
 
   Map<String, dynamic> toJson() => {

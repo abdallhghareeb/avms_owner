@@ -135,7 +135,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                         color: AppColors.appColor,
                                       ),
                                     ),
-                                    validator: validator,
+                                    validator: nonEmptyValidator,
                                   ),
                                 ),
                                 Padding(

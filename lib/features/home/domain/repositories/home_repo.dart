@@ -20,6 +20,7 @@ abstract class HomeRepo {
     required String AreaId,
     required XFile file,
     required String token,
+    required int DocTypeId,
     String? documentImage,
     String? cardNumber,
   });

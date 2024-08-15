@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:avms/features/auth/data/models/login_model.dart';
 import 'package:avms/features/auth/data/models/reg_model.dart';
 import 'package:avms/features/auth/data/models/register_model.dart';
 import 'package:avms/features/auth/domain/entities/register.dart';
@@ -42,32 +43,67 @@ class AuthCubit extends Cubit<AuthState> {
 
   User? user;
   RegisterModel ?registerResponse;
+  LoginModel ?loginModel;
 
-  Future<void> signIn(String email, String password,String uniqCode) async {
+  Future<void> login(String email, String password, String uniqCode) async {
     emit(AuthLoading());
 
     try {
-      final user = await Future.any([
-        signInUseCase.execute(email, password,uniqCode),
-        Future.delayed(Duration(seconds: 15), () {
-          throw TimeoutException('Sign-in timed out');
-        }),
-      ]);
+      final response = await DioHelper.postSignIn(
+        url: '$BASE_URL$SaveApiUrl$postSignInEndPoint',
+        parameters: {
+          'username': email,
+          'password': password,
+          'uniqCode': uniqCode,
+        },
+      );
 
-      if (user != null) {
-        await _cacheData(user);
-        emit(AuthAuthenticated(user));
+      if (response.statusCode == 200) {
+         loginModel = LoginModel.fromJson(response.data);
+         await _cacheData(loginModel!);
+        emit(AuthAuthenticated(loginModel!));
       } else {
-        emit(AuthError(''));
+        // Handle non-200 responses
+        final errorResponse = LoginModel.fromJson(response.data);
+        emit(AuthError('Failed to login: ${errorResponse.message}', errorResponse));
       }
-    } on TimeoutException catch (e) {
-      log('Sign-in timeout: ${e.message}');
-      emit(AuthError(e.message!));
+    } on DioError catch (e) {
+      if (e.response != null) {
+        try {
+          // Attempt to parse the error response
+          final errorResponse = LoginModel.fromJson(e.response!.data);
+
+          emit(AuthError('API error: ${errorResponse.message}', errorResponse));
+        } catch (jsonError) {
+          // Handle JSON parsing errors
+          emit(AuthError('Failed to parse error response: ${e.response?.statusMessage ?? 'Unknown error'}', LoginModel(
+            statusCode: 0,
+            succeeded: false,
+            message: 'Failed to parse error response',
+            data: null,
+          )));
+        }
+      } else {
+        // Handle network errors
+        emit(AuthError('Network error: ${e.message}', LoginModel(
+          statusCode: 0,
+          succeeded: false,
+          message: 'Network error',
+          data: null,
+        )));
+      }
     } catch (e) {
-      log('An error occurred: ${e.toString()}');
-      emit(AuthError(e.toString()));
+      emit(AuthError('Unexpected error: $e', LoginModel(
+        statusCode: 0,
+        succeeded: false,
+        message: 'Username or Password is incorrect!',
+        data: null,
+      )));
     }
   }
+
+
+
   Future<void> signUp({
     required String email,
     required String phone,
@@ -124,7 +160,7 @@ class AuthCubit extends Cubit<AuthState> {
           // Extract error message from API response
           var errorData = e.response?.data;
           if (errorData is Map<String, dynamic>) {
-            errorMessage = errorData['Message'] ?? 'Server error';
+            errorMessage = errorData['Message'] ?? 'validation error, please chick you data';
           } else {
             errorMessage = 'Unexpected error format';
           }
@@ -191,10 +227,10 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> _cacheData(User user) async {
-    await CacheHelper.saveData(key: CacheHelper.emailKey, value: user.email);
+  Future<void> _cacheData(LoginModel user) async {
+    await CacheHelper.saveData(key: CacheHelper.emailKey, value: user.data!.confirmMessage);
     await CacheHelper.saveData(
-        key: CacheHelper.userTokenKey, value: user.token);
+        key: CacheHelper.userTokenKey, value: user.data!.token);
 
     await CacheHelper.saveData(key: CacheHelper.isLoginBeforeKey, value: 1);
   }

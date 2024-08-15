@@ -7,8 +7,11 @@ import 'package:avms/features/home/domain/use_cases/cancel_invitation_use_case.d
 import 'package:avms/features/home/domain/use_cases/get_invitstion_by_id_use_case.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/profile/profile_screen.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/update_profile/users_update_screen.dart';
+import 'package:avms/services/api_service/dio_helper.dart';
+import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/widgets/alert_dialog.dart';
 import 'package:dialog_loader/dialog_loader.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -58,7 +61,6 @@ class HomeCubit extends Cubit<HomeState> {
 
   // Variable to store the current navigation index
   int currentNavIndex = 0;
-
 
   // Method to change the navigation bar
   void changeNavBar({required int index}) {
@@ -131,7 +133,6 @@ class HomeCubit extends Cubit<HomeState> {
           fontWeight: FontWeightManager.bold,
         ),
       ),
-
     ];
   }
 
@@ -190,11 +191,53 @@ class HomeCubit extends Cubit<HomeState> {
           "Error in GetInvitationInvitationsErrorState"));
     }
   }
-  Future<void>getAllInv()async{
+
+  Future<void> getAllInv() async {
     emit(GetInvitationLoadingState());
     final res = await getInvitationUseCase.execute();
     emit(GetInvitationByIdSuccess());
+  }
+
+  Future<void> createBlackList({
+    required String? name,
+    required String ?documentIdno,
+    required List<int> ?areaIds,
+  }) async {
+    emit(BlackListLoading());
+
+    try {
+      final formData = FormData.fromMap({
+        'Name': name,
+        'DocumentIdno': documentIdno,
+        'AreaIds': areaIds,
+      });
+
+      final response = await DioHelper.postDataToBlackList(
+        data: formData,
+        url: 'http://egydns.ddns.net:8624/api/v1/black-list/create',
+        token: TokenSave!,
+      );
+
+      if (response.statusCode == 201) {
+        emit(BlackListSuccess('Created Successfully'));
+      } else {
+        // Extract error message from response body if available
+        String apiErrorMessage = '';
+        if (response.data is Map<String, dynamic>) {
+          final responseBody = response.data as Map<String, dynamic>;
+          apiErrorMessage = responseBody['message'] ?? 'Unknown error occurred';
+        }
+
+        emit(BlackListError(
+          'Failed to create. Status code: ${response.statusCode}',
+          apiErrorMessage: apiErrorMessage,
+        ));
+      }
+    } catch (e) {
+      emit(BlackListError('Error occurred: $e'));
     }
+  }
+
 
   // Method to load data for the dashboard
   Future<void> loadDashData() async {
@@ -202,32 +245,32 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   // Method to create an invitation
-  Future<void> createInvitation({
-    required BuildContext context,
-    required String name,
-    required String phone,
-    required String email,
-    required String nationalId,
-    required DateTime registerDate,
-    required DateTime expiredDate,
-    required String AreaId,
-    required XFile file,
-    required String token,
-  }) async {
+  Future<void> createInvitation(
+      {required BuildContext context,
+      required String name,
+      required String phone,
+      required String email,
+      required String nationalId,
+      required DateTime registerDate,
+      required DateTime expiredDate,
+      required String AreaId,
+      required XFile file,
+      required String token,
+      required int DocTypeId}) async {
     emit(CreateInvitationLoadingState());
 
     try {
       final res = await createInvitationUseCase.execute(
-        fullName: name,
-        phone: phone,
-        email: email,
-        nationalId: nationalId,
-        registerDate: registerDate,
-        expiredDate: expiredDate,
-        file: file,
-        AreaId: AreaId,
-        token: token,
-      );
+          fullName: name,
+          phone: phone,
+          email: email,
+          nationalId: nationalId,
+          registerDate: registerDate,
+          expiredDate: expiredDate,
+          file: file,
+          AreaId: AreaId,
+          token: token,
+          DocTypeId: DocTypeId);
 
       if (res.qrImage.isNotEmpty) {
         // Show a dialog with QR code image and a "Share Image" button
@@ -246,18 +289,18 @@ class HomeCubit extends Cubit<HomeState> {
         log("QrImage ${res.qrImage}");
         emit(CreateInvitationSuccessState(qrImage: res.qrImage));
       } else {
-        emit(CreateInvitationErrorState("One or more validation errors occurred."));
+        emit(CreateInvitationErrorState(
+            "One or more validation errors occurred."));
       }
     } catch (e) {
       // Handle the error
       log("Error creating invitation: $e");
-      emit(CreateInvitationErrorState("One or more validation errors occurred."));
+      emit(CreateInvitationErrorState(
+          "One or more validation errors occurred."));
     }
   }
 
-
 // Function to handle image sharing (You need to implement this)
-
 
   // Method to cancel an invitation
   Future<void> cancelInvitation({

@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/app_size.dart';
@@ -43,7 +42,6 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
     newPasswordController = TextEditingController();
     confirmPasswordController = TextEditingController();
   }
-
   @override
   void dispose() {
     super.dispose();
@@ -53,7 +51,6 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
   }
 
   bool isPasswordHidden = true;
-
   void changePasswordVisibility() {
     setState(() {
       isPasswordHidden = !isPasswordHidden;
@@ -135,7 +132,7 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
                                         color: AppColors.appColor,
                                       ),
                                     ),
-                                    validator: validator,
+                                    validator: nonEmptyValidator,
                                   ),
                                 ),
                                 Padding(

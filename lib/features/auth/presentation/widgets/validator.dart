@@ -5,6 +5,12 @@ String? validator(String? value) {
   if (value == null || value.isEmpty) return 'هذا العنصر مطلوب'.tr();
   return null;
 }
+String? nonEmptyValidator(String? value) {
+  if (value == null || value.trim().isEmpty) {
+    return 'This field cannot be empty or just spaces';
+  }
+  return null;
+}
 
 String? phoneValidator(PhoneNumber? p1) {
   if (p1?.number == '' ) return 'برجاء ادخال رقم الهاتف'.tr();

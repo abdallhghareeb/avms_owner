@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: AppColors.appColor,
                               ),
                             ),
-                            validator: validator,
+                            validator: nonEmptyValidator,
                           ),
                         ),
                         // AppSpaces.vSpace10,
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextFormField(
                               controller: passwordController,
                               obscureText: isPasswordHidden,
-                              validator: validator,
+                              validator: nonEmptyValidator,
                               decoration: TextFieldDecoration.copyWith(
                                 labelText: Config.Localization['password'],
                                 prefixIcon: Icon(
@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       await SharedPreferences.getInstance();
                                   await prefs.setBool('apiUrlSave', false);
                                   loginFormKey.currentState!.save();
-                                  AuthCubit.get(context).signIn(
+                                  AuthCubit.get(context).login(
                                       userNameController!.text,
                                       passwordController!.text,
                                       '$deviceId');
@@ -214,10 +214,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               SharedPreferences prefs;
                               prefs = await SharedPreferences.getInstance();
 
-                              CacheHelper.userToken = state.user.token;
-                              TokenSave = state.user.token;
+                              CacheHelper.userToken = state.user.data?.token;
+                              TokenSave = state.user.data?.token;
 
-                              String? tokenDecode = state.user.token;
+                              String? tokenDecode = state.user.data?.token;
                               TokenSave = tokenDecode;
 
                               Map<String, dynamic> decodedToken =
@@ -232,16 +232,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               // Print the decoded token
                               print('Decoded Token: ${decodedToken}');
 
-                              print(state.user.token);
+                              print(state.user.data?.token);
 
                               Fluttertoast.showToast(
-                                  msg: 'Login Successful',
+                                  msg: '${state.user.message}',
                                   backgroundColor: Colors.green);
-                              Navigator.push(
+                              Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => HomeScreen()));
-                            } else if (state is AuthError) {}
+                                      builder: (context) => HomeScreen()),
+                                  (route) => false);
+                            } else if (state is AuthError) {
+                              Fluttertoast.showToast(
+                                  msg: '${state.loginModel.message}',
+                                  backgroundColor: Colors.red);
+                            }
                           },
                         ),
 

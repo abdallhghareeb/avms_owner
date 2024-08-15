@@ -15,6 +15,7 @@ class VisitModel extends Visit {
     required String documentImage,
     required bool isSuccess,
     required String status,
+    required int  areaId
   }) : super(
     id: id,
     fullName: fullName,
@@ -29,6 +30,7 @@ class VisitModel extends Visit {
     documentImage: documentImage,
     isSuccess: isSuccess,
     status: status,
+    areaId: areaId
   );
 
   factory VisitModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class VisitModel extends Visit {
       documentImage: json['documentImage'] ?? '',
       isSuccess: json['isSuccess'] ?? false,
       status: json['statusValue'] ?? '',
+      areaId: json['areaId']
     );
   }
 }

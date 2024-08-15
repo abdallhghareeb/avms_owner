@@ -6,6 +6,7 @@ import 'package:avms/core/utils/app_spaces.dart';
 import 'package:avms/core/utils/config.dart';
 import 'package:avms/core/utils/font_size.dart';
 import 'package:avms/features/auth/presentation/widgets/validator.dart';
+import 'package:avms/features/home/data/models/document_type.dart';
 import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_state.dart';
@@ -45,6 +46,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
   late Future<List<Area>> futureAreas;
   String? userid = CacheHelper.userId;
   static int? selectedAreaIdWithOwnerId;
+  int? selectedDocumentTypeId;
+  late Future<List<DocumentType>> futureDocumentTypes;
   final createInvitationFormKey = GlobalKey<FormState>();
   XFile? _image;
   final pickedImage = ImagePicker();
@@ -62,6 +65,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
       }
     });
   }
+
 
   List<DateTime>? dateTimeList = [
     DateTime.now(),
@@ -81,6 +85,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
     nationalIdController = TextEditingController();
     futureAreasWithOwnerId = DioHelper.fetchAreasWi(userid!);
     futureAreas = fetchAreas();
+    futureDocumentTypes = DioHelper.getInvitationDocTypes();
+
   }
 
   void clearCreateInvitationsFields() {
@@ -100,10 +106,19 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
   Future<List<Area>> fetchAreas() async {
     return await DioHelper.fetchAreasWi(userid!);
   }
+  Future<List<DocumentType>> fetchDocType() async {
+    return await DioHelper.getInvitationDocTypes();
+  }
 
   void refreshAreas() {
     setState(() {
+
       futureAreas = fetchAreas(); // Re-fetch the areas
+    });
+  }
+  void refreshDocType() {
+    setState(() {
+      futureDocumentTypes = fetchDocType(); // Re-fetch the areas
     });
   }
   @override
@@ -167,7 +182,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                     color: AppColors.appColor,
                                   ),
                                 ),
-                                validator: validator,
+                                validator: nonEmptyValidator,
                               ),
                             ),
                             Padding(
@@ -184,7 +199,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                     color: AppColors.appColor,
                                   ),
                                 ),
-                                validator: validator,
+                                validator: nonEmptyValidator,
                               ),
                             ),
                             Padding(
@@ -208,7 +223,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                               child: TextFormField(
                                 controller: nationalIdController,
                                 keyboardType: TextInputType.number,
-                                validator: validator,
+                                validator: nonEmptyValidator,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
                                   LengthLimitingTextInputFormatter(14),
@@ -437,6 +452,58 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                 },
                               ),
                             ),
+                            Padding(
+                              padding: EdgeInsets.only(right: 150.w),
+                              child: Text(
+                                'Choice your DocType :',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: FontSize.s16,
+                                    color: AppColors.appColor),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(smallPadding),
+                              child: FutureBuilder<List<DocumentType>>(
+                                future: futureDocumentTypes,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return Center(child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(child:   Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
+                                      child: ElevatedButton(
+                                        onPressed: refreshDocType,
+                                        child: Text("Refresh DocType"),
+                                      ),
+                                    ),);
+                                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return Center(child: Text('No data available'));
+                                  } else {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: DropdownButton<int>(
+                                        value: selectedDocumentTypeId,
+                                        hint: Text('Select Document Type'),
+                                        isExpanded: true,
+                                        items: snapshot.data!.map((DocumentType docType) {
+                                          return DropdownMenuItem<int>(
+                                            value: docType.id,
+                                            child: Text(docType.name),
+                                          );
+                                        }).toList(),
+                                        onChanged: (int? newValue) {
+                                          setState(() {
+                                            selectedDocumentTypeId = newValue;
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
 
 
                             InkWell(
@@ -507,9 +574,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                     expiredDate: dateTimeList!.last,
                                     file: _image!,
                                     AreaId: '$selectedAreaIdWithOwnerId',
-                                    token: TokenSave!,
+                                    token: TokenSave!, DocTypeId: selectedDocumentTypeId!,
                                   );
-
                                   // Clear the image after successful creation
                                   setState(() {
                                     _image = null;

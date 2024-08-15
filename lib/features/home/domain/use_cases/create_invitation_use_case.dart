@@ -21,6 +21,7 @@ class CreateInvitationUseCase {
     required String AreaId,
     required String token,
     required XFile file,
+    required int DocTypeId
 
   }) {
     return homeRepo.createInvitations(
@@ -31,7 +32,7 @@ class CreateInvitationUseCase {
         registerDate: registerDate,
         expiredDate: expiredDate,
       file: file, AreaId: AreaId,
-      token: token
+      token: token, DocTypeId: DocTypeId
 
     );
   }

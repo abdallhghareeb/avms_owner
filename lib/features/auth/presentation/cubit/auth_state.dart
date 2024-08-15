@@ -1,3 +1,4 @@
+import 'package:avms/features/auth/data/models/login_model.dart';
 import 'package:avms/features/auth/data/models/reg_model.dart';
 import 'package:avms/features/auth/data/models/register_model.dart';
 import 'package:avms/features/auth/domain/entities/register.dart';
@@ -10,15 +11,15 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
-  final User user;
+  final LoginModel user;
 
   AuthAuthenticated(this.user);
 }
 
 class AuthError extends AuthState {
-  final String errorMessage;
-
-  AuthError(this.errorMessage);
+  final String e;
+  LoginModel loginModel;
+  AuthError( this.e,this.loginModel);
 }
 class AuthLoading1 extends AuthState {}
 
