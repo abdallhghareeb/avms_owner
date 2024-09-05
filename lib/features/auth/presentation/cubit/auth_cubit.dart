@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:avms/features/auth/data/models/login_model.dart';
-import 'package:avms/features/auth/data/models/reg_model.dart';
 import 'package:avms/features/auth/data/models/register_model.dart';
-import 'package:avms/features/auth/domain/entities/register.dart';
 import 'package:avms/features/auth/domain/entities/user.dart';
 import 'package:avms/features/auth/domain/use_cases/forget_password_use_case.dart';
 import 'package:avms/features/auth/domain/use_cases/reset_password_use_case.dart';
@@ -16,13 +13,11 @@ import 'package:avms/features/auth/presentation/cubit/auth_state.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';
-import 'package:avms/services/local/dio_helper.dart';
 import 'package:device_info/device_info.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final SignInUseCase signInUseCase;
@@ -54,7 +49,7 @@ class AuthCubit extends Cubit<AuthState> {
         parameters: {
           'username': email,
           'password': password,
-          'uniqCode': uniqCode,
+          //'uniqCode': uniqCode,
         },
       );
 
@@ -62,7 +57,7 @@ class AuthCubit extends Cubit<AuthState> {
          loginModel = LoginModel.fromJson(response.data);
          await _cacheData(loginModel!);
         emit(AuthAuthenticated(loginModel!));
-      } else {
+       } else {
         // Handle non-200 responses
         final errorResponse = LoginModel.fromJson(response.data);
         emit(AuthError('Failed to login: ${errorResponse.message}', errorResponse));
@@ -221,7 +216,7 @@ class AuthCubit extends Cubit<AuthState> {
       );
       emit(AuthResetPasswordSuccess());
     } catch (e) {
-      log("e ${e.toString()}");
+
       emit(AuthAuthForgotPasswordError(
           'Forgot password failed ${e.toString()}'));
     }

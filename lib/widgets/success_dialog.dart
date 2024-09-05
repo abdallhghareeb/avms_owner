@@ -114,6 +114,16 @@ class TransparentDialog extends StatelessWidget {
                 height: 150,
               ),
             ),
+            AppSpaces.hSpace16,
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Close the dialog
+              child: Text(
+                'Close',
+                style: TextStyle(
+                  color: Colors.blue, // Customize text color if needed
+                ),
+              ),
+            ),
           ],
         ),
       ),

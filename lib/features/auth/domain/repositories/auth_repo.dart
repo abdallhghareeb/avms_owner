@@ -23,7 +23,7 @@ abstract class AuthRepo {
 
 
   });
-  Future<AreaResponse> getAreaUnit();
+ // Future<Area> getAreaUnit();
 
   Future<void> signOut({required BuildContext context});
 

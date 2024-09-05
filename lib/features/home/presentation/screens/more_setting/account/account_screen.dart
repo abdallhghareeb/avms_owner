@@ -3,6 +3,7 @@ import 'package:avms/core/utils/config.dart';
 import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:avms/features/auth/presentation/screens/login_screen.dart';
 import 'package:avms/services/api_service/end_point.dart';
+import 'package:avms/services/local/cache_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -110,8 +111,9 @@ class _AccountScreenState extends State<AccountScreen> {
                   style: TextStyle(fontSize: 14.0),
                 ),
                 leading: Icon(Icons.logout, size: 32.0),
-                onTap: () {
+                onTap: ()async {
                   AuthCubit.get(context).signOut(context: context);
+
 
                 },
               ),

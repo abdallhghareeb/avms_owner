@@ -42,6 +42,8 @@ Future<void> main() async {
   SaveApiUrl = saveUrl;
   print('aaaaaaayyaya $SaveApiUrl');
   CacheHelper.userId = pref.getString('TokenUserId');
+  print('cvzzzzzz$BASE_URL$SaveApiUrl');
+
   print('this is ${CacheHelper.userId}');
   print(pref.getInt('selectedAreaId'));
   print(pref.getInt('selectedAreaIdWithoutOwner'));

@@ -32,15 +32,17 @@ class CreateInvitationLoadingState extends HomeState {}
 
 class CreateInvitationSuccessState extends HomeState {
   final String qrImage;
+  String Message;
 
-  CreateInvitationSuccessState({required this.qrImage});
+  CreateInvitationSuccessState({required this.qrImage, required this.Message});
 }
 
 class CreateInvitationErrorState extends HomeState {
-  final String error;
-
-  CreateInvitationErrorState(this.error);
+  final String e;
+  ApiResponseToCreateInv apiResponseToCreateInv;
+  CreateInvitationErrorState( this.e,this.apiResponseToCreateInv);
 }
+
 class BlackListLoading extends HomeState {}
 
 // Success state
@@ -48,7 +50,6 @@ class BlackListSuccess extends HomeState {
   final String message;
 
   BlackListSuccess(this.message);
-
 }
 
 // Error state
@@ -57,7 +58,6 @@ class BlackListError extends HomeState {
   final String? apiErrorMessage;
 
   BlackListError(this.error, {this.apiErrorMessage});
-
 }
 
 class ShareInvitationQrLoadingState extends HomeState {}

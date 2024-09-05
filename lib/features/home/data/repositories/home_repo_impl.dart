@@ -1,10 +1,5 @@
-import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/exceptions.dart';
-import 'package:avms/features/home/data/models/info_model.dart';
 import 'package:avms/features/home/data/models/qr_model.dart';
 import 'package:avms/features/home/data/models/visit_model.dart';
 import 'package:avms/features/home/domain/entities/Qr.dart';
@@ -70,7 +65,7 @@ class HomeRepoImpl extends HomeRepo {
 
     final res = await handleRequest(
           () async => DioHelper.createInvitation(
-        url:BASE_URL+ SaveApiUrl! + postCreateInvitationsEndPoint,
+        url:postCreateInvitationsEndPoint,
         param: formData, token: token,
       ),
     );

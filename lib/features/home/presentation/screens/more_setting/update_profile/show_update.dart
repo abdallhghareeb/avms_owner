@@ -31,8 +31,8 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
   late TextEditingController _pictureUrlController;
   late List<int> selectedAreaIds;
   String? selectedRole;
-  bool _isUpdating = false; // Add updating state
-  bool _isActive = true; // Default value; adjust as needed
+  bool _isUpdating = false;
+  bool _isActive = true;
   bool _emailConfirmed = true; // Default value; adjust as needed
 
   @override
@@ -42,8 +42,7 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
     _imageController = TextEditingController(text: widget.user.pictureUrl ?? '');
     _pictureUrlController = TextEditingController(text: widget.user.pictureUrl ?? '');
 
-    // Initialize selectedAreaIds with safe default
-    selectedAreaIds = []; // Set default from user data
+    selectedAreaIds = widget.user.areas.map((area) => area['id'] as int).toList(); // Extract IDs
     selectedRole = widget.user.roles.isNotEmpty ? widget.user.roles.first : null;
     _isActive = widget.user.isActive; // Set initial value
     _emailConfirmed = widget.user.emailConfirmed; // Set initial value
@@ -51,7 +50,6 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> roles = ['UnitAdmin', 'User'];
 
     return SingleChildScrollView(
       child: AlertDialog(
@@ -62,26 +60,11 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Choice Role:', style: TextStyle(color: AppColors.primaryColor)),
+              Text('Your Role:', style: TextStyle(color: AppColors.primaryColor)),
               SizedBox(height: 5.h),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: DropdownButtonFormField<String>(
-                  value: selectedRole,
-                  hint: Text('Select Role'),
-                  onChanged: (String? role) {
-                    setState(() {
-                      selectedRole = role;
-                    });
-                  },
-                  items: roles.map((role) {
-                    return DropdownMenuItem<String>(
-                      value: role,
-                      child: Text(role),
-                    );
-                  }).toList(),
-                  validator: (value) => value == null ? 'Role is required' : null,
-                ),
+                child: Text('${selectedRole}'),
               ),
               TextFormField(
                 controller: _phoneController,
@@ -90,14 +73,25 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
               ),
               SizedBox(height: 10),
               Text(
-                'Choice your Units:',
+                'Choose your Units:',
                 style: TextStyle(fontWeight: FontWeight.w500, fontSize: FontSize.s16, color: AppColors.appColor),
               ),
               ...widget.areas.map((area) {
+                bool isChecked = selectedAreaIds.contains(area.id);
+                // Check if the user's role is 'UnitAdmin'
+                bool isUnitAdmin = selectedRole == 'UnitAdmin';
+
+                // Ensure all units are checked for UnitAdmin
+                if (isUnitAdmin) {
+                  isChecked = true;
+                }
+
                 return CheckboxListTile(
                   title: Text(area.name),
-                  value: selectedAreaIds.contains(area.id),
-                  onChanged: (bool? checked) {
+                  value: isChecked,
+                  onChanged: isUnitAdmin
+                      ? null // Disable checkbox changes for UnitAdmin
+                      : (bool? checked) {
                     setState(() {
                       if (checked == true) {
                         selectedAreaIds.add(area.id);
@@ -108,25 +102,6 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
                   },
                 );
               }).toList(),
-              SizedBox(height: 10),
-              SwitchListTile(
-                title: Text('Is Active'),
-                value: _isActive,
-                onChanged: (bool value) {
-                  setState(() {
-                    _isActive = value;
-                  });
-                },
-              ),
-              SwitchListTile(
-                title: Text('Email Confirmed'),
-                value: _emailConfirmed,
-                onChanged: (bool value) {
-                  setState(() {
-                    _emailConfirmed = value;
-                  });
-                },
-              ),
             ],
           ),
         ),
@@ -138,14 +113,19 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
             child: Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: _isUpdating ? null : () async { // Disable button when updating
+            onPressed: _isUpdating ? null : () async {
               if (!_formKey.currentState!.validate()) {
-                return; // If form is not valid, exit the function
+                return;
               }
 
-              if (selectedRole == null || selectedAreaIds.isEmpty) {
+              // Handle fallback for selectedAreaIds
+              List<int> areaIds = selectedAreaIds.isNotEmpty
+                  ? selectedAreaIds
+                  : widget.user.areas.map((area) => area['id'] as int).toList();
+
+              if (areaIds.isEmpty) {
                 Fluttertoast.showToast(
-                  msg: 'Please select role and at least one unit',
+                  msg: 'Please select at least one unit',
                   toastLength: Toast.LENGTH_SHORT,
                   backgroundColor: Colors.red,
                   textColor: Colors.white,
@@ -154,11 +134,10 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
               }
 
               setState(() {
-                _isUpdating = true; // Start updating
+                _isUpdating = true;
               });
 
               List<String> rolesList = [selectedRole!];
-              List<int> areaIds = selectedAreaIds;
 
               await _updateUser(
                 widget.user.userId,
@@ -172,15 +151,15 @@ class _UpdateUserDialogState extends State<UpdateUserDialog> {
               );
 
               setState(() {
-                _isUpdating = false; // Stop updating
+                _isUpdating = false;
               });
 
-              widget.onUpdateSuccess(); // Call the callback to refresh user list
+              widget.onUpdateSuccess();
               Navigator.of(context).pop();
             },
             child: _isUpdating
-                ? CircularProgressIndicator() // Show loading spinner
-                : Text('Update'), // Show text when not updating
+                ? CircularProgressIndicator()
+                : Text('Update'),
           ),
         ],
       ),

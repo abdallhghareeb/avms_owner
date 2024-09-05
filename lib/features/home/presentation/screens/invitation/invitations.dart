@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
@@ -22,8 +23,8 @@ class InvitationsScreen extends StatefulWidget {
 
 class _InvitationsScreenState extends State<InvitationsScreen> {
   late ScrollController _scrollController;
-  bool _isCancelling = false; // Add this variable to track loading state for cancellation
-  CancelInvitationResponse ?cancelInvitationResponse;
+  bool _isCancelling = false;
+  CancelInvitationResponse? cancelInvitationResponse;
   List<VisitModel> _userDataList = [];
   int _currentPage = 1;
   bool _isLoading = false;
@@ -38,7 +39,21 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    _checkNetworkAndFetchData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkNetworkAndFetchData(isRefresh: true);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant InvitationsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _checkNetworkAndFetchData(isRefresh: true);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _checkNetworkAndFetchData(isRefresh: true);
   }
 
   @override
@@ -93,8 +108,8 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
 
       setState(() {
         final newData = newUserData.where((newItem) {
-          return !_userDataList.any((existingItem) =>
-          existingItem.id == newItem.id);
+          return !_userDataList
+              .any((existingItem) => existingItem.id == newItem.id);
         }).toList();
 
         _userDataList.addAll(newData);
@@ -115,7 +130,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200 &&
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading) {
       _fetchData();
     }
@@ -125,7 +140,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     if (dateString == null || dateString.isEmpty) return 'N/A';
     try {
       DateTime parsedDate = DateTime.parse(dateString);
-      return DateFormat('yyyy-MM-dd HH:mm:ss').format(parsedDate);
+      return DateFormat('yyyy-MM-dd HH:mm').format(parsedDate);
     } catch (e) {
       print('Error parsing date: $e');
       return 'N/A';
@@ -198,158 +213,187 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
           ),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await _fetchData(isRefresh: true);
-        },
-        child: _isLoading && _userDataList.isEmpty
-            ? Center(child: CircularProgressIndicator())
-            : _userDataList.isEmpty
-            ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_hasNetworkError) ...[
-                Icon(Icons.signal_wifi_off, size: 80, color: Colors.grey),
-                SizedBox(height: 16),
-                Text(
-                  'No internet connection.',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Check your connection and try again.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => _checkNetworkAndFetchData(isRefresh: true),
-                  child: Text('Retry'),
-                ),
-              ] else
-                ...[
-                  Text('No data available', style: TextStyle(fontSize: 18)),
-                  SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => _fetchData(isRefresh: true),
-                    child: Text('Refresh'),
-                  ),
-                ],
-            ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: RefreshIndicator(
+            onRefresh: () async => _checkNetworkAndFetchData(isRefresh: true),
+            child: _hasNetworkError
+                ? _buildNoNetworkContent()
+                : _isLoading && _userDataList.isEmpty
+                    ? Center(child: CircularProgressIndicator())
+                    : _buildContent(),
           ),
-        )
-            : ListView.builder(
-          controller: _scrollController,
-          itemCount: _userDataList.length + (_isLoading ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= _userDataList.length) {
-              return Center(child: CircularProgressIndicator());
-            }
-
-            VisitModel userData = _userDataList[index];
-            return GestureDetector(
-              onTap: () => _showDetailsDialog(context, userData),
-              child: Container(
-                padding: EdgeInsets.all(12.0),
-                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 6,
-                      offset: Offset(0, 2), // changes position of shadow
-                    ),
-                  ],
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: Image.network(
-                        userData.qrLink ?? '',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Image.asset('assets/placeholder_image.png'),
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userData.fullName ?? '',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Card Number: ${userData.cardNumber ?? ''}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          Text(
-                            'Created At: ${userData.expiryDate ?? ''}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          Text(
-                            'Registration Date: ${userData.registrationDate ??
-                                ''}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
         ),
       ),
     );
   }
+
+  Widget _buildNoNetworkContent() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.signal_wifi_off, size: 80, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'No internet connection.',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Check your connection and try again.',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => _checkNetworkAndFetchData(isRefresh: true),
+            child: Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildNoDataContent() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'No data available.',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+          SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => _fetchData(isRefresh: true),
+            child: Text('Refresh'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildContent() {
+    return _userDataList.isEmpty
+        ? _buildNoDataContent()
+        : ListView.builder(
+            controller: _scrollController,
+            itemCount: _userDataList.length + (_isLoading ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index >= _userDataList.length) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              VisitModel userData = _userDataList[index];
+              return InkWell(
+                onTap: () {
+                  _showDetailsDialog(context, userData);
+                },
+                child: Container(
+                  padding: EdgeInsets.all(12.0),
+                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 100.w,
+                        height: 100.h,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: Image.network(
+                              userData.documentImage!,
+                              width: double.infinity,
+                              height: 160,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Image.asset('assets/placeholder_image.png'),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Name: ${userData.fullName}',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Date: ${formatDate(userData.registrationDate)}',
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.grey),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Expire Data: ${formatDate(userData.expiryDate)}',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Status: ${userData.status}',
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.green),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+  }
+
 
   void _showDetailsDialog(BuildContext context, VisitModel invitation) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
+          builder: (BuildContext context, StateSetter setState) {
+            return Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.0),
               ),
-              title: Text(
-                invitation.fullName ?? 'No Name',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              content: SingleChildScrollView(
+              child: Container(
+                width: 300, // Example width
+                padding: EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (invitation.qrLink != null && invitation.qrLink!.isNotEmpty)
+                    Text(
+                      invitation.fullName ?? 'No Name',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    if (invitation.qrLink != null &&
+                        invitation.qrLink!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: ClipRRect(
@@ -378,62 +422,114 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                       'Registration Date: ${invitation.registrationDate ?? 'N/A'}',
                       style: TextStyle(fontSize: 16, color: Colors.black87),
                     ),
-                  ],
-                ),
-              ),
-              actions: [
-                // Reshare Button
-                TextButton.icon(
-                  onPressed: () async {
-                    HomeCubit cubit = HomeCubit.get(context);
-                    await cubit.shareImage(invitation.qrLink!);
-                  },
-                  icon: Icon(Icons.share, size: 20, color: Colors.blue),
-                  label: Text('Reshare'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.blue, padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                    textStyle: TextStyle(fontSize: 16),
-                  ),
-                ),
-                // Cancel Invitation Button
-                if (_isCancelling)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: TextButton(
-                      onPressed: null, // Disable button during loading
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.grey, padding: EdgeInsets.symmetric(vertical: 12.0),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    SizedBox(height: 16),
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.0,
-                              color: Colors.black,
+                          TextButton.icon(
+                            onPressed: () async {
+                              HomeCubit cubit = HomeCubit.get(context);
+                              await cubit.shareImage(invitation.qrLink!);
+                            },
+                            icon:
+                                Icon(Icons.share, size: 20, color: Colors.blue),
+                            label: Text('Reshare'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.blue,
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 12.0, horizontal: 16.0),
+                              textStyle: TextStyle(fontSize: 16),
                             ),
                           ),
-                          SizedBox(width: 8),
-                          Text('Cancelling...', style: TextStyle(fontSize: 16)),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  TextButton.icon(
-                    onPressed: () async {
-                      bool? confirm = await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text('Cancel Invitation'),
-                            content: Text('Are you sure you want to cancel this invitation?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.of(context).pop(); // Close the dialog
+                          SizedBox(height: 8),
+                          if (_isCancelling)
+                            TextButton(
+                              onPressed: null,
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.grey,
+                                padding: EdgeInsets.symmetric(vertical: 12.0),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('Cancelling...',
+                                      style: TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                            )
+                          else
+                            if(invitation.status=='Canceld'||invitation.status=='Expired')
+                              TextButton.icon(
+                                onPressed: ()  {
+
+                                },
+                                icon: Icon(Icons.cancel,
+                                    size: 20, color: Colors.grey),
+                                label: Text('Cancel Invitation'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.grey,
+                                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                                  textStyle: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                          if(invitation.status!='Canceld'&&invitation.status!='Expired')
+                            TextButton.icon(
+                              onPressed: () async {
+                                bool? confirm = await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Text('Cancel Invitation'),
+                                      content: Text(
+                                          'Are you sure you want to cancel this invitation?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(true);
+                                          },
+                                          child: _isCancelling
+                                              ? Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    SizedBox(
+                                                      width: 24,
+                                                      height: 24,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        strokeWidth: 2.0,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Text('Cancelling...',
+                                                        style: TextStyle(
+                                                            fontSize: 16)),
+                                                  ],
+                                                )
+                                              : Text('Yes'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
+                                          child: Text('No'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (confirm == true) {
                                   setState(() {
                                     _isCancelling = true;
                                   });
@@ -441,80 +537,60 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                                   setState(() {
                                     _isCancelling = false;
                                   });
-                                },
-                                child: _isCancelling
-                                    ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.0,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text('Cancelling...', style: TextStyle(fontSize: 16)),
-                                  ],
-                                )
-                                    : Text('Yes'),
+                                }
+                              },
+                              icon: Icon(Icons.cancel,
+                                  size: 20, color: Colors.red),
+                              label: Text('Cancel Invitation'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                                padding: EdgeInsets.symmetric(vertical: 12.0),
+                                textStyle: TextStyle(fontSize: 16),
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: Text('No'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    icon: Icon(Icons.cancel, size: 20, color: Colors.red),
-                    label: Text('Cancel Invitation'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red, padding: EdgeInsets.symmetric(vertical: 12.0),
-                      textStyle: TextStyle(fontSize: 16),
+                            ),
+                          SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: () async {
+                              List<int> convertAreaIdToList(int? areaId) {
+                                return areaId != null ? [areaId] : [];
+                              }
+
+                              await createBlackListEntry(
+                                name: invitation.fullName,
+                                documentIdno: invitation.documentId,
+                                areaIds: convertAreaIdToList(invitation.areaId),
+                                dateTimeFrom: invitation.registrationDate,
+                                dateTimeTo: invitation.expiryDate,
+                              );
+                            },
+                            icon: Icon(Icons.block,
+                                size: 20, color: Colors.deepOrange),
+                            label: Text('Add To BlackList'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.deepOrange,
+                              padding: EdgeInsets.symmetric(vertical: 12.0),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(
+                              'Close',
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                // Add To BlackList Button
-                TextButton.icon(
-                  onPressed: () async {
-                    List<int> convertAreaIdToList(int? areaId) {
-                      return [areaId!];
-                    }
-                    await createBlackListEntry(
-                      name: invitation.fullName,
-                      documentIdno: invitation.documentId,
-                      areaIds: convertAreaIdToList(invitation.areaId),
-                      dateTimeFrom: invitation.registrationDate,
-                      dateTimeTo: invitation.expiryDate,
-                    );
-                  },
-                  icon: Icon(Icons.block, size: 20, color: Colors.deepOrange),
-                  label: Text('Add To BlackList'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.deepOrange, padding: EdgeInsets.symmetric(vertical: 12.0),
-                  ),
+                  ],
                 ),
-                // Close Button
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    'Close',
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                ),
-              ],
+              ),
             );
           },
         );
       },
     );
   }
-
-
-
-
 
   Future<void> _cancelInvitation(String? registrationId) async {
     setState(() {
@@ -539,8 +615,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
             msg: cancelInvitationResponse!.message,
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.green
-        );
+            backgroundColor: Colors.green);
 
         // Optionally refresh data or remove the invitation from the list
         _fetchData(isRefresh: true);
@@ -552,8 +627,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                 : 'Failed to cancel invitation.',
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.red
-        );
+            backgroundColor: Colors.red);
       }
     } catch (e) {
       // Handle error when parsing response
@@ -561,8 +635,8 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
       if (e is DioError) {
         // Check if the error has a response and extract message
         if (e.response != null) {
-          final errorResponse = CancelInvitationResponse.fromJson(
-              e.response!.data);
+          final errorResponse =
+              CancelInvitationResponse.fromJson(e.response!.data);
           errorMessage = errorResponse.message.isNotEmpty
               ? errorResponse.message
               : 'An error occurred.';
@@ -577,14 +651,14 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
           msg: errorMessage,
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.red
-      );
+          backgroundColor: Colors.red);
     } finally {
       setState(() {
         _isCancelling = false; // Set loading state to false when done
       });
     }
   }
+
   Future<void> createBlackListEntry({
     required String? name,
     required String? documentIdno,
@@ -602,7 +676,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
       });
 
       Response response = await DioHelper.postDataToBlackList(
-        url: 'http://egydns.ddns.net:8624/api/v1/black-list/create',
+        url: '$BASE_URL$SaveApiUrl/api/v1/black-list/create',
         data: formData,
         token: TokenSave!,
       );
@@ -642,7 +716,4 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
       );
     }
   }
-
-
-
 }

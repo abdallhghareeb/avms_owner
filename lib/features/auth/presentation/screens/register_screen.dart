@@ -94,6 +94,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return 'Failed to get device ID';
     }
   }
+  Future<void> _fetchAreas() async {
+    setState(() {
+      if (selectedLocation == 'UnitAdmin') {
+        futureAreasWitout = DioHelper.fetchAreasWithoutOwners();
+      } else {
+        futureAreas = DioHelper.fetchAreasWithHaveOwners();
+      }
+    });
+  }
 
   String localIp = 'Fetching...';
   String publicIp = 'Fetching...';
@@ -102,8 +111,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void initState() {
     super.initState();
     _deviceId = _initDeviceId();
-    futureAreas = DioHelper.fetchAreasWithOwners();
+    futureAreas = DioHelper.fetchAreasWithHaveOwners();
     futureAreasWitout = DioHelper.fetchAreasWithoutOwners();
+    _fetchAreas();
   }
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -308,60 +318,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ),
                               AppSpaces.vSpace20,
-                              Padding(
-                                padding: EdgeInsets.only(right: 150.w),
-                                child: Text(
-                                  'Choice your Roles:',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: FontSize.s16,
-                                      color: AppColors.appColor),
-                                ),
+                              Text(
+                                'Choice your Roles:',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: FontSize.s16,
+                                    color: AppColors.appColor),
                               ),
                               AppSpaces.vSpace10,
-                              DropdownButton(
-                                hint: Text('Please choose a location'),
-                                // Not necessary for Option 1
+                              DropdownButton<String>(
                                 value: selectedLocation,
-                                onChanged: (newValue) {
+                                onChanged: (String? newValue) {
                                   setState(() {
                                     selectedLocation = newValue!;
+                                    _fetchAreas();
                                   });
                                 },
-                                items: _locations.map((location) {
-                                  return DropdownMenuItem(
-                                    child: new Text(location),
+                                items: _locations.map<DropdownMenuItem<String>>((String location) {
+                                  return DropdownMenuItem<String>(
                                     value: location,
+                                    child: Text(location),
                                   );
                                 }).toList(),
                               ),
                               AppSpaces.vSpace20,
-                              Padding(
-                                padding: EdgeInsets.only(right: 150.w),
-                                child: Text(
-                                  'Choice your Unit :',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: FontSize.s16,
-                                      color: AppColors.appColor),
-                                ),
+                              Text(
+                                'Choice your Unit :',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: FontSize.s16,
+                                    color: AppColors.appColor),
                               ),
+                              AppSpaces.vSpace10,
+
+
                               if (selectedLocation == 'UnitAdmin')
                                 FutureBuilder<List<Area>>(
                                   future: futureAreasWitout,
                                   builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
                                       return CircularProgressIndicator();
                                     } else if (snapshot.hasError) {
+                                      print('Error: ${snapshot.error}'); // Debugging
                                       return Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Row(
                                           children: [
                                             Icon(Icons.warning_amber),
                                             Expanded(
-                                              child: Text(
-                                                  'There is a problem with the network'),
+                                              child: Text('There is a problem with the network'),
                                             ),
                                           ],
                                         ),
@@ -377,12 +382,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           });
                                         },
                                         items: areas.map<DropdownMenuItem<int>>(
-                                            (Area area) {
-                                          return DropdownMenuItem<int>(
-                                            value: area.id,
-                                            child: Text(area.name),
-                                          );
-                                        }).toList(),
+                                              (Area area) {
+                                            return DropdownMenuItem<int>(
+                                              value: area.id,
+                                              child: Text(area.name),
+                                            );
+                                          },
+                                        ).toList(),
                                       );
                                     } else {
                                       return Text('No data');
@@ -393,18 +399,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 FutureBuilder<List<Area>>(
                                   future: futureAreas,
                                   builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
                                       return CircularProgressIndicator();
                                     } else if (snapshot.hasError) {
+                                      print('Error: ${snapshot.error}'); // Debugging
                                       return Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Row(
                                           children: [
                                             Icon(Icons.warning_amber),
                                             Expanded(
-                                              child: Text(
-                                                  'There is a problem with the network'),
+                                              child: Text('There is a problem with the network'),
                                             ),
                                           ],
                                         ),
@@ -420,18 +425,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           });
                                         },
                                         items: areas.map<DropdownMenuItem<int>>(
-                                            (Area area) {
-                                          return DropdownMenuItem<int>(
-                                            value: area.id,
-                                            child: Text(area.name),
-                                          );
-                                        }).toList(),
+                                              (Area area) {
+                                            return DropdownMenuItem<int>(
+                                              value: area.id,
+                                              child: Text(area.name),
+                                            );
+                                          },
+                                        ).toList(),
                                       );
                                     } else {
                                       return Text('No data');
                                     }
                                   },
                                 ),
+
                               AppSpaces.vSpace20,
                               FutureBuilder<String>(
                                 future: _deviceId,

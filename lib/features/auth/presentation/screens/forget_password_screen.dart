@@ -170,6 +170,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                               child: TextFormField(
                                 validator: nonEmptyValidator,
                                 controller: emailRecoveryController,
+                                onTap: (){
+                                  emailRecoveryController.text=saveEmail!;
+                                },
                                 decoration: TextFieldDecoration.copyWith(
                                   labelText: 'E-mail',
                                   prefixIcon: Icon(

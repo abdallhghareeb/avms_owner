@@ -86,7 +86,7 @@ class AuthRepoImpl extends AuthRepo {
     required String email,
     required String AreaIds,
     required String roles,
-      XFile? file,
+    XFile? file,
 
   }) async {
     var formData = FormData.fromMap({
@@ -111,18 +111,17 @@ class AuthRepoImpl extends AuthRepo {
   }
 
   void _clearCache() async {
-     await CacheHelper.removeData(key: CacheHelper.isLoginBeforeKey);
+    await CacheHelper.removeData(key: CacheHelper.isLoginBeforeKey);
 
-     await CacheHelper.removeData(key: CacheHelper.userTokenKey);
-
+    await CacheHelper.removeData(key: CacheHelper.userTokenKey);
 
   }
 
-  @override
-  Future<AreaResponse> getAreaUnit()async {
-    final res = await handleRequest(
-            () => DioHelper.getAreaUnit(url: SaveApiUrl! + getAreaUnitEndPoint));
-    logger.d("getAreaUnit respoo ${res.data}");
-    return AreaResponse.fromJson(res.data);
-  }
+  // @override
+  // Future<AreaResponse> getAreaUnit()async {
+  //   final res = await handleRequest(
+  //           () => DioHelper.getAreaUnit(url: SaveApiUrl! + getAreaUnitEndPoint));
+  //   logger.d("getAreaUnit respoo ${res.data}");
+  //   return AreaResponse.fromJson(res.data);
+  // }
 }

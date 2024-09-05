@@ -3,7 +3,7 @@ import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/app_size.dart';
 import 'package:avms/core/utils/app_strings.dart';
 import 'package:avms/core/utils/app_themes.dart';
-import 'package:avms/features/auth/presentation/screens/Area.dart';
+import 'package:./avms/features/auth/presentation/screens/Area.dart';
 import 'package:avms/features/auth/presentation/screens/area_unit_without_owner.dart';
 import 'package:avms/features/auth/presentation/screens/enter_your_baseUrl.dart';
 import 'package:avms/features/auth/presentation/screens/login_screen.dart';

@@ -43,6 +43,10 @@ class _MoreSettingScreenState extends State<MoreSettingScreen> {
                 );
               },
             ),
+            SizedBox(
+            height: 10,
+            ),
+
             ListTile(
               title: Text(Config.Localization['Appearance']),
               subtitle: Text(Config.Localization['Customize the app appearance']),
@@ -61,6 +65,9 @@ class _MoreSettingScreenState extends State<MoreSettingScreen> {
                 );
               },
             ),
+            SizedBox(
+              height: 10,
+            ),
             ListTile(
               title: Text(Config.Localization['Profile']),
               subtitle: Text(Config.Localization['GetToKnowYourData']),
@@ -78,6 +85,9 @@ class _MoreSettingScreenState extends State<MoreSettingScreen> {
                   pageTransitionAnimation: PageTransitionAnimation.cupertino,
                 );
               },
+            ),
+            SizedBox(
+              height: 10,
             ),
 
            BlocBuilder<HomeCubit,HomeState>(builder: (context,state){

@@ -270,7 +270,9 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                               builder: (context) =>
                                                   LoginScreen()));
                                     } else if (state
-                                        is AuthAuthForgotPasswordError) {}
+                                        is AuthAuthForgotPasswordError) {
+
+                                    }
                                   },
                                 ),
                                 AppSpaces.vSpace20,

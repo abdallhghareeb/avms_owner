@@ -72,25 +72,7 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                     ),
 
-                    SizedBox(height: 10),
-                    SwitchListTile(
-                      title: Text('Is Active'),
-                      value: isActive,
-                      onChanged: (bool value) {
-                        setState(() {
-                          isActive = value;
-                        });
-                      },
-                    ),
-                    SwitchListTile(
-                      title: Text('Email Confirmed'),
-                      value: emailConfirmed,
-                      onChanged: (bool value) {
-                        setState(() {
-                          emailConfirmed = value;
-                        });
-                      },
-                    ),
+
                     // Add more fields as required
                   ],
                 ),

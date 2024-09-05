@@ -2,16 +2,15 @@ import 'dart:io';
 import 'dart:developer';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/config.dart';
-import 'package:avms/features/home/data/models/error_response_model.dart';
+import 'package:avms/features/home/data/models/api_res_create_inv.dart';
 import 'package:avms/features/home/domain/use_cases/cancel_invitation_use_case.dart';
 import 'package:avms/features/home/domain/use_cases/get_invitstion_by_id_use_case.dart';
-import 'package:avms/features/home/presentation/screens/more_setting/profile/profile_screen.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/update_profile/users_update_screen.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
-import 'package:avms/widgets/alert_dialog.dart';
-import 'package:dialog_loader/dialog_loader.dart';
+
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -145,7 +144,7 @@ class HomeCubit extends Cubit<HomeState> {
 
     info = await dashInfoUseCase.execute();
     if (info != null) {
-      log("infooo ${info}");
+
       emit(GetDashInfoSuccessState());
     } else {
       emit(GetDashInfoErrorState("Error in getDashInfo"));
@@ -214,7 +213,7 @@ class HomeCubit extends Cubit<HomeState> {
 
       final response = await DioHelper.postDataToBlackList(
         data: formData,
-        url: 'http://egydns.ddns.net:8624/api/v1/black-list/create',
+        url: '$BASE_URL$SaveApiUrl/api/v1/black-list/create',
         token: TokenSave!,
       );
 
@@ -238,65 +237,104 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-
+  ApiResponseToCreateInv ?response;
   // Method to load data for the dashboard
   Future<void> loadDashData() async {
     Future.wait([getDashInfo(), getInvitations()]);
   }
-
-  // Method to create an invitation
-  Future<void> createInvitation(
-      {required BuildContext context,
-      required String name,
-      required String phone,
-      required String email,
-      required String nationalId,
-      required DateTime registerDate,
-      required DateTime expiredDate,
-      required String AreaId,
-      required XFile file,
-      required String token,
-      required int DocTypeId}) async {
+  Future<void> createInvitation({
+    required BuildContext context,
+    required String name,
+    required String phone,
+    required String email,
+    required String nationalId,
+    required DateTime registerDate,
+    required DateTime expiredDate,
+    required String AreaId,
+    required XFile file,
+    required String token,
+    required int DocTypeId,
+  }) async {
     emit(CreateInvitationLoadingState());
 
     try {
-      final res = await createInvitationUseCase.execute(
-          fullName: name,
-          phone: phone,
-          email: email,
-          nationalId: nationalId,
-          registerDate: registerDate,
-          expiredDate: expiredDate,
-          file: file,
-          AreaId: AreaId,
-          token: token,
-          DocTypeId: DocTypeId);
+      final formData = FormData.fromMap({
+        "fullName": name,
+        "email": email,
+        "phone": phone,
+        "Image": await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+        "documentId": nationalId,
+        "registrationDate": DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(registerDate.toUtc()),
+        "expiryDate": DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(expiredDate.toUtc()),
+        "AreaId": AreaId,
+        'DeviceIp': '147',
+        'InvitDocType': DocTypeId,
+      });
 
-      if (res.qrImage.isNotEmpty) {
-        // Show a dialog with QR code image and a "Share Image" button
+      final response = await DioHelper.createToInvitations(
+        url: '$BASE_URL$SaveApiUrl$postCreateInvitationsEndPoint',
+        param: formData,
+        token: token,
+      );
+
+      if (response.data!.qrLink.isNotEmpty) {
         showQrDialog(
           context: context,
-          qrImage: res.qrImage,
+          qrImage: response.data!.qrLink,
           buttonName: 'Share Image',
           isCreateInvitation: true,
           onPressed: () async {
-            logger.w("qrImg ${res.qrImage}");
-            HomeCubit cubit = HomeCubit.get(context);
-            await cubit.shareImage(res.qrImage);
+            logger.w("qrImg ${response.data?.qrLink}");
+            final cubit = HomeCubit.get(context);
+            await cubit.shareImage(response.data!.qrLink);
           },
         );
 
-        log("QrImage ${res.qrImage}");
-        emit(CreateInvitationSuccessState(qrImage: res.qrImage));
+        emit(CreateInvitationSuccessState(qrImage: response.data!.qrLink, Message: response.message));
       } else {
-        emit(CreateInvitationErrorState(
-            "One or more validation errors occurred."));
+        final errorResponse = ApiResponseToCreateInv.fromJson(response.data as Map<String, dynamic>);
+        emit(CreateInvitationErrorState(response.message.isEmpty ? 'The User in blackList' : response.message, errorResponse));
+      }
+    } on DioError catch (e) {
+      if (e.response != null) {
+        if (e.response!.statusCode == 400) {
+          // Handle validation errors
+          final validationErrors = e.response!.data['errors'] as Map<String, dynamic>;
+          final errorMessages = validationErrors.entries
+              .map((entry) => '${entry.key}: ${entry.value.join(', ')}')
+              .join('\n');
+          emit(CreateInvitationErrorState(errorMessages.isEmpty  ? 'The User in blackList' : errorMessages, ApiResponseToCreateInv(
+            statusCode: 0,
+            succeeded: false,
+            message: 'The User in blackList',
+            data: Data(qrLink: ''),
+            meta: null,
+            errors: null,
+          )));
+        } else {
+          // Handle other errors
+          final errorResponse = ApiResponseToCreateInv.fromJson(e.response!.data as Map<String, dynamic>);
+          emit(CreateInvitationErrorState(e.response!.statusMessage!.isEmpty ? 'The User in blackList' : 'API error: ${errorResponse.message}', errorResponse));
+        }
+      } else {
+        emit(CreateInvitationErrorState('Network error: ${e.message}', ApiResponseToCreateInv(
+          statusCode: 0,
+          succeeded: false,
+          message: 'Unexpected error occurred',
+          data: Data(qrLink: ''),
+          meta: null,
+          errors: null,
+        )));
       }
     } catch (e) {
-      // Handle the error
-      log("Error creating invitation: $e");
-      emit(CreateInvitationErrorState(
-          "One or more validation errors occurred."));
+      emit(CreateInvitationErrorState('Unexpected error: $e', ApiResponseToCreateInv(
+        statusCode: 0,
+        succeeded: false,
+        message: 'Unexpected error occurred',
+        data: Data(qrLink: ''),
+        meta: null,
+        errors: null,
+      )));
     }
   }
 

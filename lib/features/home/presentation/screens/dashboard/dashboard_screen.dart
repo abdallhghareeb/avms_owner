@@ -1,8 +1,8 @@
 import 'package:avms/core/utils/app_size.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -43,28 +43,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _hasNetwork = true;
         _currentPage = 1; // Reset to first page on network check
-        _dashboardInfo = fetchDashInfo();
+        _dashboardInfo = DioHelper.fetchDashInfo();
         _fetchRecentInvitations();
       });
     }
   }
-
+  String formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return 'N/A';
+    try {
+      DateTime parsedDate = DateTime.parse(dateString);
+      return DateFormat('yyyy-MM-dd HH:mm').format(parsedDate);
+    } catch (e) {
+      print('Error parsing date: $e');
+      return 'N/A';
+    }
+  }
   Future<void> _fetchRecentInvitations({int pageNumber = 1}) async {
     setState(() {
       _isLoadingMore = true;
     });
     try {
-      final List<VisitModel> newInvitations = await DioHelper.fetchData(
+      final List<VisitModel> allInvitations = await DioHelper.fetchData(
         token: TokenSave!,
         parameters: {
           "PageNumber": pageNumber,
         },
       );
+
+      // Filter the invitations based on status
+      final List<VisitModel> filteredInvitations = allInvitations.where((invitation) {
+        return invitation.status == 'Active' || invitation.status == 'Success and active';
+      }).toList();
+
       setState(() {
         if (pageNumber == 1) {
-          _recentInvitations = newInvitations;
+          _recentInvitations = filteredInvitations;
         } else {
-          _recentInvitations.addAll(newInvitations);
+          _recentInvitations.addAll(filteredInvitations);
         }
         _isLoadingMore = false;
       });
@@ -76,26 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<DashboardTabsInfo?> fetchDashInfo() async {
-    try {
-      final response = await Dio().get(
-        '$BASE_URL$SaveApiUrl$getDashInfoEndPoint',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $TokenSave',
-          },
-        ),
-      );
-      if (response.statusCode == 200) {
-        return DashboardTabsInfo.fromJson(response.data);
-      } else {
-        return null;
-      }
-    } catch (e) {
-      print('Error fetching dashboard info: $e');
-      return null;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     items: [
                       CarouselCard(
-                        itemTitle: "Total Invitations",
+                        itemTitle: "Total Invitations Today",
                         itemCount: info.totalInvitation,
                         itemColor: Colors.blue,
                         itemIcon: Icons.class_,
@@ -222,14 +218,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             child: ListView.builder(
               itemCount:
-                  _recentInvitations.length > 5 ? 5 : _recentInvitations.length,
+               _recentInvitations.length,
               itemBuilder: (context, index) {
                 VisitModel invitation = _recentInvitations[index];
                 return GestureDetector(
                   onTap: () => _showDetailsDialog(context, invitation),
                   child: Container(
                     margin:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                     padding: EdgeInsets.all(12.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -249,49 +245,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Row(
                       children: [
                         SizedBox(
-                          width: 60,
-                          height: 60,
-                          child: Image.network(
-                            invitation.qrLink ?? '',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Image.asset('assets/placeholder_image.png'),
+                          width: 100.w,
+                          height: 100.h,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12.0),
+                              child: Image.network(
+                                invitation.documentImage!,
+                                width: double.infinity,
+                                height: 160,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset('assets/placeholder_image.png'),
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(width: 12),
                         Expanded(
-                          flex: 2,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                invitation.fullName ?? '',
+                                'Name: ${invitation.fullName}',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: 8),
                               Text(
-                                'Card Number: ${invitation.cardNumber ?? ''}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
+                                'Date: ${formatDate(invitation.registrationDate)}',
+                                style:
+                                TextStyle(fontSize: 14, color: Colors.grey),
                               ),
+                              SizedBox(height: 8),
                               Text(
-                                'Created At: ${invitation.expiryDate ?? ''}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
+                                'Expire Data: ${formatDate(invitation.expiryDate)}',
+                                style: TextStyle(fontSize: 14),
                               ),
+                              SizedBox(height: 8),
                               Text(
-                                'Registration Date: ${invitation.registrationDate ?? ''}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
+                                'Status: ${invitation.status}',
+                                style:
+                                TextStyle(fontSize: 14, color: Colors.green),
                               ),
                             ],
                           ),

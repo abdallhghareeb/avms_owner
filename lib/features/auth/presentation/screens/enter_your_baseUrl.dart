@@ -45,6 +45,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     String apiURL = _apiController.text;
     if (apiURL.isNotEmpty && apiURL.startsWith('egydns.ddns.net:')) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
+
       prefs.setString('apiUrl', apiURL);
       ConfigScreen.saveUrl = apiURL;
       SaveApiUrl = apiURL;

@@ -9,7 +9,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
 import '../../../../../auth/data/models/area_unit.dart';
 
 class UpdateUsersScreen extends StatefulWidget {
@@ -19,13 +18,11 @@ class UpdateUsersScreen extends StatefulWidget {
 
 class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
   late Future<List<GetUserModel>> _futureUsers;
-  List<GetUserModel> _users = [];
   bool _isLoading = false;
   bool _hasError = false;
   Map<String, int?> _selectedStatusMap = {};
   late Future<List<Area>> futureAreas;
   String? userid = CacheHelper.userId;
-  List<int> selectedAreaIds = [];
 
   @override
   void initState() {
@@ -34,26 +31,10 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
     futureAreas = DioHelper.fetchAreasWi(userid!);
   }
 
-  Future<List<Area>> fetchAreas() async {
-    return await DioHelper.fetchAreasWi(userid!);
-  }
-
-  void refreshAreas() {
-    setState(() {
-      futureAreas = fetchAreas(); // Re-fetch the areas
-    });
-  }
-
   Future<List<GetUserModel>> _fetchUsersWithToken() async {
     if (TokenSave == null) {
-      Fluttertoast.showToast(
-        msg: 'Token is null',
-        toastLength: Toast.LENGTH_SHORT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-      _hasError = true;
-      return []; // Return empty list to avoid further errors
+      _handleError('Token is null');
+      return [];
     }
 
     try {
@@ -68,9 +49,8 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
             .where((user) => !user.isDeleted)
             .toList();
 
-        // Initialize status map without using SharedPreferences
         for (var user in users) {
-          _selectedStatusMap[user.userId] = null; // Set default status or as needed
+          _selectedStatusMap[user.userId] = null;
         }
 
         _hasError = false;
@@ -79,10 +59,21 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
         throw Exception('Failed to fetch users');
       }
     } catch (e) {
-    
-      _hasError = true;
-      return []; // Return empty list to avoid further errors
+      _handleError('Error fetching users: $e');
+      return [];
     }
+  }
+
+  void _handleError(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+    setState(() {
+      _hasError = true;
+    });
   }
 
   Future<void> _refreshUsers() async {
@@ -98,15 +89,7 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
     });
 
     if (TokenSave == null) {
-      Fluttertoast.showToast(
-        msg: 'Token is null',
-        toastLength: Toast.LENGTH_SHORT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-      setState(() {
-        _isLoading = false;
-      });
+      _handleError('Token is null');
       return;
     }
 
@@ -114,15 +97,8 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
       final response = await DioHelper.postData(
         url: '$BASE_URL$SaveApiUrl/api/v1/user/account-status',
         token: TokenSave!,
-        data: {
-          'id': userId,
-          'accountStatus': status,
-        },
+        data: {'id': userId, 'accountStatus': status},
       );
-
-      setState(() {
-        _isLoading = false;
-      });
 
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
@@ -132,23 +108,14 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
           textColor: Colors.white,
         );
       } else {
-        Fluttertoast.showToast(
-          msg: 'Failed to update status',
-          toastLength: Toast.LENGTH_SHORT,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
+        _handleError('Failed to update status');
       }
     } catch (e) {
+      _handleError('Error updating status: $e');
+    } finally {
       setState(() {
         _isLoading = false;
       });
-      Fluttertoast.showToast(
-        msg: 'Error updating status: $e',
-        toastLength: Toast.LENGTH_SHORT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
     }
   }
 
@@ -160,22 +127,13 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
       String image,
       bool emailConfirmed,
       String pictureUrl,
-      List<int> areaIds,
-      ) async {
+      List<int> areaIds) async {
     setState(() {
       _isLoading = true;
     });
 
     if (TokenSave == null) {
-      Fluttertoast.showToast(
-        msg: 'Token is null',
-        toastLength: Toast.LENGTH_SHORT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-      setState(() {
-        _isLoading = false;
-      });
+      _handleError('Token is null');
       return;
     }
 
@@ -195,10 +153,6 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
         }),
       );
 
-      setState(() {
-        _isLoading = false;
-      });
-
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
           msg: 'User updated successfully',
@@ -206,44 +160,40 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        _refreshUsers(); // Refresh the user list or update UI accordingly
+        _refreshUsers();
       } else {
-        Fluttertoast.showToast(
-          msg: 'Failed to update user',
-          toastLength: Toast.LENGTH_SHORT,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
+        _handleError('Failed to update user');
       }
     } catch (e) {
+      _handleError('Error updating user: $e');
+    } finally {
       setState(() {
         _isLoading = false;
       });
-      Fluttertoast.showToast(
-        msg: 'Error updating user: $e',
-        toastLength: Toast.LENGTH_SHORT,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
     }
   }
 
   String _statusToString(int? status) {
     switch (status) {
-      case 0:
-        return 'Pending';
-      case 1:
-        return 'Reject';
-      case 2:
-        return 'Accept';
-      default:
-        return 'Unknown';
+      case 0: return 'Pending';
+      case 1: return 'Reject';
+      case 2: return 'Accept';
+      default: return 'Unknown';
     }
   }
 
   Future<void> _showUpdateUserDialog(GetUserModel user) async {
-    // Fetch areas asynchronously before showing the dialog
-    List<Area> areas = await DioHelper.fetchAreasWi(userid!);
+    List<Area> areas = [];
+    bool hasError = false;
+
+    try {
+      areas = await DioHelper.fetchAreasWi(userid!);
+    } catch (e) {
+      hasError = true;
+      _handleError('Error fetching areas: $e');
+    }
+
+    if (hasError) return;
 
     showDialog(
       context: context,
@@ -251,7 +201,7 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
         return UpdateUserDialog(
           user: user,
           areas: areas,
-          onUpdateSuccess: _refreshUsers, // Pass the callback
+          onUpdateSuccess: _refreshUsers,
         );
       },
     );
@@ -265,7 +215,7 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
           '${Config.Localization['Users']}',
           style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: AppColors.primaryColor, // Define your primary color in AppColors
+        backgroundColor: AppColors.primaryColor,
         elevation: 4.0,
       ),
       body: Stack(
@@ -278,126 +228,123 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
                 } else if (_hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.signal_wifi_off, size: 80, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'No internet connection.',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Check your connection and try again.',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                        SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _refreshUsers,
-                          child: Text('Retry'),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildErrorState();
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('No users found'),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _refreshUsers,
-                          child: Text('Refresh'),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildEmptyState();
                 } else {
-                  _users = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: _users.length,
-                    itemBuilder: (context, index) {
-                      final user = _users[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        leading: CircleAvatar(
-                          radius: 20.0,
-                          backgroundImage: NetworkImage(user.pictureUrl),
-                          onBackgroundImageError: (error, stackTrace) {
-                            // Optionally log or handle the error here
-                          },
-                          child: user.pictureUrl.isEmpty
-                              ? null
-                              : ClipOval(
-                            child: Image.network(
-                              user.pictureUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                                // Display a default image if the network image fails to load
-                                return Image.asset('assets/images/defultImage/def1.png', fit: BoxFit.cover);
-                              },
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          user.username,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
-                        ),
-                        subtitle: Text(user.email),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            DropdownButton<int>(
-                              hint: Text('${user.accountStatus}'),
-                              value: _selectedStatusMap[user.userId],
-                              items: [
-                                DropdownMenuItem(value: 0, child: Text('Pending')),
-                                DropdownMenuItem(value: 1, child: Text('Reject')),
-                                DropdownMenuItem(value: 2, child: Text('Accept')),
-                              ],
-                              onChanged: (status) {
-                                if (status != null) {
-                                  setState(() {
-                                    _selectedStatusMap[user.userId] = status;
-                                    _updateAccountStatus(user.userId, status);
-                                  });
-                                }
-                              },
-                              dropdownColor: Colors.white,
-                              icon: Icon(Icons.arrow_drop_down, color: Colors.black),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.edit, color: AppColors.primaryColor),
-                              onPressed: () {
-                                _showUpdateUserDialog(user);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
+                  return _buildUserList(snapshot.data!);
                 }
               },
             ),
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-            ),
+          if (_isLoading) _buildLoadingIndicator(),
         ],
       ),
     );
   }
 
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.signal_wifi_off, size: 80, color: Colors.grey),
+          SizedBox(height: 16),
+          Text('No internet connection.', style: TextStyle(fontSize: 18, color: Colors.grey)),
+          SizedBox(height: 8),
+          Text('Check your connection and try again.', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _refreshUsers,
+            child: Text('Retry'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('No users found'),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _refreshUsers,
+            child: Text('Refresh'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserList(List<GetUserModel> users) {
+    return ListView.builder(
+      itemCount: users.length,
+      itemBuilder: (context, index) {
+        final user = users[index];
+        return ListTile(
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          leading: CircleAvatar(
+            radius: 20.0,
+            backgroundImage: NetworkImage(user.pictureUrl),
+            onBackgroundImageError: (error, stackTrace) {
+              // Optionally log or handle the error here
+            },
+            child: user.pictureUrl.isEmpty
+                ? Icon(Icons.person, size: 24, color: Colors.grey)
+                : null,
+          ),
+          title: Text(user.username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
+          subtitle: Text(user.email),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildStatusDropdown(user),
+              IconButton(
+                icon: Icon(Icons.edit, color: AppColors.primaryColor),
+                onPressed: () => _showUpdateUserDialog(user),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusDropdown(GetUserModel user) {
+    return DropdownButton<int>(
+      hint: Text('${user.accountStatus}'),
+      value: _selectedStatusMap[user.userId],
+      items: [
+        DropdownMenuItem(value: 0, child: Text('Pending')),
+        DropdownMenuItem(value: 1, child: Text('Reject')),
+        DropdownMenuItem(value: 2, child: Text('Accept')),
+      ],
+      onChanged: (status) {
+        if (status != null) {
+          setState(() {
+            _selectedStatusMap[user.userId] = status;
+            _updateAccountStatus(user.userId, status);
+          });
+        }
+      },
+      dropdownColor: Colors.white,
+      icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Container(
+      color: Colors.black54,
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      ),
+    );
+  }
 }

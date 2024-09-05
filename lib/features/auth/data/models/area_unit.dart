@@ -1,44 +1,4 @@
 
-class AreaResponse {
-  final int statusCode;
-  final dynamic meta;
-  final bool succeeded;
-  final String message;
-  final dynamic errors;
-  final List<Area> data;
-
-  AreaResponse({
-    required this.statusCode,
-    this.meta,
-    required this.succeeded,
-    required this.message,
-    this.errors,
-    required this.data,
-  });
-
-  factory AreaResponse.fromJson(Map<String, dynamic> json) {
-    return AreaResponse(
-      statusCode: json['statusCode'],
-      meta: json['meta'],
-      succeeded: json['succeeded'],
-      message: json['message'],
-      errors: json['errors'],
-      data: List<Area>.from(json['data'].map((x) => Area.fromJson(x))),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'statusCode': statusCode,
-      'meta': meta,
-      'succeeded': succeeded,
-      'message': message,
-      'errors': errors,
-      'data': List<dynamic>.from(data.map((x) => x.toJson())),
-    };
-  }
-}
-
 class Area {
   final int id;
   final String name;
@@ -50,11 +10,18 @@ class Area {
   final int status;
   final bool isUnit;
   final bool isActive;
-  final String? note;
-  final String? description;
+  final String note;
+  final String description;
   final bool isDeleted;
-  final dynamic createdUserId;
-  final dynamic createdUserName;
+  final String createdUserId;
+  final String? createdUserName;
+  final String? lastUpdatedUserId;
+  final String? updatedUserName;
+  final String? deletedUserId;
+  final String? deletedUserName;
+  final String? visitStartTime;
+  final String? visitEndTime;
+  final String number;
   final List<Owner> owners;
 
   Area({
@@ -68,11 +35,18 @@ class Area {
     required this.status,
     required this.isUnit,
     required this.isActive,
-    this.note,
-    this.description,
+    required this.note,
+    required this.description,
     required this.isDeleted,
-    this.createdUserId,
+    required this.createdUserId,
     this.createdUserName,
+    this.lastUpdatedUserId,
+    this.updatedUserName,
+    this.deletedUserId,
+    this.deletedUserName,
+    this.visitStartTime,
+    this.visitEndTime,
+    required this.number,
     required this.owners,
   });
 
@@ -88,14 +62,24 @@ class Area {
       status: json['status'],
       isUnit: json['isUnit'],
       isActive: json['isActive'],
-      note: json['note'],
-      description: json['description'],
+      note: json['note'] ?? '',
+      description: json['description'] ?? '',
       isDeleted: json['isDeleted'],
       createdUserId: json['createdUserId'],
       createdUserName: json['createdUserName'],
-      owners: List<Owner>.from(json['owners'].map((x) => Owner.fromJson(x))),
+      lastUpdatedUserId: json['lastUpdatedUserId'],
+      updatedUserName: json['updatedUserName'],
+      deletedUserId: json['deletedUserId'],
+      deletedUserName: json['deletedUserName'],
+      visitStartTime: json['visitStartTime'],
+      visitEndTime: json['visitEndTime'],
+      number: json['number'],
+      owners: (json['owners'] as List<dynamic>)
+          .map((item) => Owner.fromJson(item as Map<String, dynamic>))
+          .toList(),
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -114,11 +98,17 @@ class Area {
       'isDeleted': isDeleted,
       'createdUserId': createdUserId,
       'createdUserName': createdUserName,
-      'owners': List<dynamic>.from(owners.map((x) => x.toJson())),
+      'lastUpdatedUserId': lastUpdatedUserId,
+      'updatedUserName': updatedUserName,
+      'deletedUserId': deletedUserId,
+      'deletedUserName': deletedUserName,
+      'visitStartTime': visitStartTime,
+      'visitEndTime': visitEndTime,
+      'number': number,
+      'owners': owners.map((owner) => owner.toJson()).toList(),
     };
   }
 }
-
 class Owner {
   final String id;
   final String userName;

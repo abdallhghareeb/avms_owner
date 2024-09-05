@@ -61,13 +61,31 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<AuthCubit, AuthState>(
-        listener: (context, state) {
+      body:  BlocConsumer<AuthCubit, AuthState>(
+        listener: (BuildContext context, AuthState state) async {
           if (state is AuthResetPasswordSuccess) {
-            // showInformationDialog(context: context, title:"resetPass", content:"resetMessageSentSuccessfully");
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.setString('ResetSave', 'SuccessReset');
+            Fluttertoast.showToast(
+              toastLength: Toast.LENGTH_LONG,
+              msg: "${'reset password successful'}",
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 5,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
+            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+          } else if (state is AuthAuthForgotPasswordError) {
+
           }
         },
         builder: (context, state) {
+          if (state is AuthLoading) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
           return SafeArea(
             child: SingleChildScrollView(
               child: Container(
@@ -95,17 +113,12 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
                         elevation: elevation,
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadiusDirectional.all(
-                            Radius.circular(
-                              borderRadius,
-                            ),
+                            Radius.circular(borderRadius),
                           ),
                         ),
                         clipBehavior: Clip.antiAliasWithSaveLayer,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0,
-                            vertical: 16,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 16),
                           child: Form(
                             key: resetFormKey,
                             child: Column(
@@ -211,56 +224,25 @@ class ResetPasswordScreenState extends State<ResetPasswordToForgetPassScreen> {
                                 ),
                                 AppSpaces.vSpace20,
                                 // Reset Password button
-                                BlocConsumer<AuthCubit, AuthState>(
-                                  builder: (context, state) {
-                                    return ConditionalBuilder(
-                                      condition: state is! AuthLoading,
-                                      builder: (context) => MainButton(
-                                        text: Config.Localization['ResetPassword'],
-                                        onPressed: () {
-                                          FocusScope.of(context).unfocus();
-                                          if (!resetFormKey.currentState!.validate()) return;
-                                          resetFormKey.currentState!.save();
+                                ConditionalBuilder(
+                                  condition: state is! AuthLoading,
+                                  builder: (context) => MainButton(
+                                    text: Config.Localization['ResetPassword'],
+                                    onPressed: () {
+                                      FocusScope.of(context).unfocus();
+                                      if (!resetFormKey.currentState!.validate()) return;
 
-                                          // Retrieve email from shared preferences or other source
+                                      // Retrieve email from shared preferences or other source
 
-                                          AuthCubit.get(context).resetPassword(
-                                            email: SaveEmailForgetPass!,
-                                            code: codeController.text,
-                                            password: newPasswordController.text,
-                                            confirmPassword: confirmPasswordController.text,
-                                          );
-                                        },
-                                      ),
-                                      fallback: (context) => CircularProgressIndicator(),
-                                    );
-                                  },
-                                  listener: (BuildContext context, AuthState state) async {
-                                    if (state is AuthResetPasswordSuccess) {
-                                      SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('ResetSave', 'SuccessReset');
-                                      Fluttertoast.showToast(
-                                        toastLength: Toast.LENGTH_LONG,
-                                        msg: "${'reset password successful'}",
-                                        gravity: ToastGravity.BOTTOM,
-                                        timeInSecForIosWeb: 5,
-                                        backgroundColor: Colors.green,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0,
+                                      AuthCubit.get(context).resetPassword(
+                                        email: SaveEmailForgetPass!,
+                                        code: codeController.text,
+                                        password: newPasswordController.text,
+                                        confirmPassword: confirmPasswordController.text,
                                       );
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-                                    } else if (state is AuthAuthForgotPasswordError) {
-                                      Fluttertoast.showToast(
-                                        toastLength: Toast.LENGTH_LONG,
-                                        msg: state.errorMessage,
-                                        gravity: ToastGravity.BOTTOM,
-                                        timeInSecForIosWeb: 5,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0,
-                                      );
-                                    }
-                                  },
+                                    },
+                                  ),
+                                  fallback: (context) => CircularProgressIndicator(),
                                 ),
                                 AppSpaces.vSpace20,
                               ],

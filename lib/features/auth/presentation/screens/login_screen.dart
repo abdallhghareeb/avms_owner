@@ -19,6 +19,7 @@ import 'package:avms/widgets/btn.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:device_info/device_info.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -79,230 +80,233 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Container(
-          width: SizeConfig.screenWidth,
-          height: SizeConfig.screenHeight,
-          padding: EdgeInsetsDirectional.all(borderRadius),
-          child: Stack(clipBehavior: Clip.antiAliasWithSaveLayer, children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset(
-                  width: SizeConfig.screenWidth * 0.35,
-                  AppStrings.appLogo,
-                  alignment: AlignmentDirectional.centerStart,
-                ),
-              ],
-            ),
-            Center(
-              child: Card(
-                semanticContainer: true,
-                elevation: elevation,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadiusDirectional.all(
-                    Radius.circular(
-                      borderRadius,
+        child: SingleChildScrollView(
+          child: Container(
+            width: SizeConfig.screenWidth,
+            height: SizeConfig.screenHeight,
+            padding: EdgeInsetsDirectional.all(borderRadius),
+            child: Stack(clipBehavior: Clip.antiAliasWithSaveLayer, children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset(
+                    width: SizeConfig.screenWidth * 0.35,
+                    AppStrings.appLogo,
+                    alignment: AlignmentDirectional.centerStart,
+                  ),
+                ],
+              ),
+              Center(
+                child: Card(
+                  semanticContainer: true,
+                  elevation: elevation,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadiusDirectional.all(
+                      Radius.circular(
+                        borderRadius,
+                      ),
                     ),
                   ),
-                ),
-                clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.symmetric(
-                      horizontal: 10.0, vertical: 16),
-                  child: Form(
-                    key: loginFormKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          Config.Localization['login'],
-                          style: TextStyle(
-                            color: AppColors.appColor,
-                            fontSize: FontSize.s20,
-                            fontFamily: FontFamily.fontFamily,
-                            fontWeight: FontWeightManager.bold,
-                          ),
-                        ).tr(),
-                        AppSpaces.vSpace20,
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: smallPadding, vertical: midPadding),
-                          child: TextFormField(
-                            controller: userNameController,
-                            decoration: TextFieldDecoration.copyWith(
-                              labelText: Config.Localization['email'],
-                              prefixIcon: Icon(
-                                Icons.email,
-                                color: AppColors.appColor,
-                              ),
+                  clipBehavior: Clip.antiAliasWithSaveLayer,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.symmetric(
+                        horizontal: 10.0, vertical: 16),
+                    child: Form(
+                      key: loginFormKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            Config.Localization['login'],
+                            style: TextStyle(
+                              color: AppColors.appColor,
+                              fontSize: FontSize.s20,
+                              fontFamily: FontFamily.fontFamily,
+                              fontWeight: FontWeightManager.bold,
                             ),
-                            validator: nonEmptyValidator,
-                          ),
-                        ),
-                        // AppSpaces.vSpace10,
-                        Padding(
-                          padding: const EdgeInsets.all(smallPadding),
-                          child: TextFormField(
-                              controller: passwordController,
-                              obscureText: isPasswordHidden,
-                              validator: nonEmptyValidator,
+                          ).tr(),
+                          AppSpaces.vSpace20,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: smallPadding, vertical: midPadding),
+                            child: TextFormField(
+                              controller: userNameController,
                               decoration: TextFieldDecoration.copyWith(
-                                labelText: Config.Localization['password'],
+                                labelText: Config.Localization['email'],
                                 prefixIcon: Icon(
-                                  Icons.key,
+                                  Icons.email,
                                   color: AppColors.appColor,
                                 ),
-                                suffixIcon: isPasswordHidden
-                                    ? GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            changePasswordVisibility();
-                                          });
-                                        },
-                                        child: Icon(
-                                          Icons.visibility_sharp,
-                                          color: AppColors.appColor,
-                                        ),
-                                      )
-                                    : GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            changePasswordVisibility();
-                                          });
-                                        },
-                                        child: Icon(
-                                          Icons.visibility_off_sharp,
-                                          color: AppColors.appColor,
-                                        ),
-                                      ),
-                              )),
-                        ),
-                        AppSpaces.vSpace20,
-                        // Login button
-                        BlocConsumer<AuthCubit, AuthState>(
-                          builder: (context, state) {
-                            return ConditionalBuilder(
-                              condition: state is! AuthLoading,
-                              builder: (context) => MainButton(
-                                text: Config.Localization['login'],
-                                onPressed: () async {
-                                  String deviceId = await getDeviceId();
-                                  print(deviceId);
-                                  FocusScope.of(context).unfocus();
-                                  if (!loginFormKey.currentState!.validate())
-                                    return;
-                                  SaveNavToLoginWhenSaveApiUrl = false;
-                                  SharedPreferences prefs =
-                                      await SharedPreferences.getInstance();
-                                  await prefs.setBool('apiUrlSave', false);
-                                  loginFormKey.currentState!.save();
-                                  AuthCubit.get(context).login(
-                                      userNameController!.text,
-                                      passwordController!.text,
-                                      '$deviceId');
-                                },
                               ),
-                              fallback: (context) =>
-                                  CircularProgressIndicator(),
-                            );
-                          },
-                          listener:
-                              (BuildContext context, AuthState state) async {
-                            if (state is AuthAuthenticated) {
-                              SharedPreferences prefs;
-                              prefs = await SharedPreferences.getInstance();
-
-                              CacheHelper.userToken = state.user.data?.token;
-                              TokenSave = state.user.data?.token;
-
-                              String? tokenDecode = state.user.data?.token;
-                              TokenSave = tokenDecode;
-
-                              Map<String, dynamic> decodedToken =
-                                  JwtDecoder.decode(tokenDecode!);
-                              CacheHelper.userId = decodedToken['UserId'];
-                              prefs.setString(
-                                  'TokenUserId', '${CacheHelper.userId}');
-                              prefs.setString('TokenUser', '${TokenSave}');
-
-                              // Print the userId
-                              print('UserId: ${CacheHelper.userId}');
-                              // Print the decoded token
-                              print('Decoded Token: ${decodedToken}');
-
-                              print(state.user.data?.token);
-
-                              Fluttertoast.showToast(
-                                  msg: '${state.user.message}',
-                                  backgroundColor: Colors.green);
-                              Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => HomeScreen()),
-                                  (route) => false);
-                            } else if (state is AuthError) {
-                              Fluttertoast.showToast(
-                                  msg: '${state.loginModel.message}',
-                                  backgroundColor: Colors.red);
-                            }
-                          },
-                        ),
-
-                        AppSpaces.vSpace20,
-                        // Forgot password link
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ForgetPasswordScreen()),
-                            );
-                          },
-                          child: Text(
-                            Config.Localization['forgetPass'],
-                            style: TextStyle(
-                                color: AppColors.appColor,
-                                fontWeight: FontWeight.bold),
-                          ).tr(),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'If you want to SignUp',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
-                                    fontSize: FontSize.s15),
-                              ),
-                              AppSpaces.hSpace5,
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                RegisterScreen()));
-                                  },
-                                  child:
-                                      Text('${Config.Localization['SignUp']}'))
-                            ],
+                              validator: nonEmptyValidator,
+                            ),
                           ),
-                        )
-                      ],
+                          // AppSpaces.vSpace10,
+                          Padding(
+                            padding: const EdgeInsets.all(smallPadding),
+                            child: TextFormField(
+                                controller: passwordController,
+                                obscureText: isPasswordHidden,
+                                validator: nonEmptyValidator,
+                                decoration: TextFieldDecoration.copyWith(
+                                  labelText: Config.Localization['password'],
+                                  prefixIcon: Icon(
+                                    Icons.key,
+                                    color: AppColors.appColor,
+                                  ),
+                                  suffixIcon: isPasswordHidden
+                                      ? GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              changePasswordVisibility();
+                                            });
+                                          },
+                                          child: Icon(
+                                            Icons.visibility_sharp,
+                                            color: AppColors.appColor,
+                                          ),
+                                        )
+                                      : GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              changePasswordVisibility();
+                                            });
+                                          },
+                                          child: Icon(
+                                            Icons.visibility_off_sharp,
+                                            color: AppColors.appColor,
+                                          ),
+                                        ),
+                                )),
+                          ),
+                          AppSpaces.vSpace20,
+                          // Login button
+                          BlocConsumer<AuthCubit, AuthState>(
+                            builder: (context, state) {
+                              return ConditionalBuilder(
+                                condition: state is! AuthLoading,
+                                builder: (context) => MainButton(
+                                  text: Config.Localization['login'],
+                                  onPressed: () async {
+                                    String deviceId = await getDeviceId();
+                                    print(deviceId);
+                                    FocusScope.of(context).unfocus();
+                                    if (!loginFormKey.currentState!.validate())
+                                      return;
+                                    SaveNavToLoginWhenSaveApiUrl = false;
+                                    SharedPreferences prefs =
+                                        await SharedPreferences.getInstance();
+                                    await prefs.setBool('apiUrlSave', false);
+                                    loginFormKey.currentState!.save();
+                                    AuthCubit.get(context).login(
+                                        userNameController!.text,
+                                        passwordController!.text,
+                                        '$deviceId');
+                                  },
+                                ),
+                                fallback: (context) =>
+                                    CircularProgressIndicator(),
+                              );
+                            },
+                            listener:
+                                (BuildContext context, AuthState state) async {
+                              if (state is AuthAuthenticated) {
+                                SharedPreferences prefs;
+                                prefs = await SharedPreferences.getInstance();
+          
+                                CacheHelper.userToken = state.user.data?.token;
+                                TokenSave = state.user.data?.token;
+          
+                                String? tokenDecode = state.user.data?.token;
+                                TokenSave = tokenDecode;
+          
+                                Map<String, dynamic> decodedToken =
+                                    JwtDecoder.decode(tokenDecode!);
+                                CacheHelper.userId = decodedToken['UserId'];
+                                prefs.setString(
+                                    'TokenUserId', '${CacheHelper.userId}');
+                                prefs.setString('TokenUser', '${TokenSave}');
+          
+                                // Print the userId
+                                print('UserId: ${CacheHelper.userId}');
+                                // Print the decoded token
+                                print('Decoded Token: ${decodedToken}');
+          
+                                print(state.user.data?.token);
+          
+                                Fluttertoast.showToast(
+                                    msg: '${state.user.message}',
+                                    backgroundColor: Colors.green);
+                                Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => HomeScreen()),
+                                    (route) => false);
+                              } else if (state is AuthError) {
+                                Fluttertoast.showToast(
+                                    msg: '${state.loginModel.message}',
+                                    backgroundColor: Colors.red);
+                              }
+                            },
+                          ),
+          
+                          AppSpaces.vSpace20,
+                          // Forgot password link
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ForgetPasswordScreen()),
+                              );
+                            },
+                            child: Text(
+                              Config.Localization['forgetPass'],
+                              style: TextStyle(
+                                  color: AppColors.appColor,
+                                  fontWeight: FontWeight.bold),
+                            ).tr(),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'If you want to SignUp',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                      fontSize: FontSize.s15),
+                                ),
+
+                                TextButton(
+                                    onPressed: () {
+
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  RegisterScreen()));
+                                    },
+                                    child:
+                                        Text('${Config.Localization['SignUp']}'))
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            // Spacer(
-            //   flex: 10,
-            // ),
-          ]),
+              // Spacer(
+              //   flex: 10,
+              // ),
+            ]),
+          ),
         ),
       ),
     );
