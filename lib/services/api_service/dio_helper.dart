@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:avms/features/auth/data/models/create_inv_model.dart';
 import 'package:avms/features/auth/data/models/unit_model.dart';
+import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:avms/features/auth/presentation/screens/login_screen.dart';
 import 'package:avms/features/home/data/models/api_res_create_inv.dart';
 import 'package:avms/features/home/data/models/api_response.dart';
 import 'package:avms/features/home/data/models/dashInfo_Model.dart';
@@ -11,6 +13,9 @@ import 'package:avms/services/api_service/end_point.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path/path.dart';
 
 import '../../features/auth/data/models/area_unit.dart';
 
@@ -22,7 +27,6 @@ class DioHelper {
     dio = Dio(
       BaseOptions(
           baseUrl: '$BASE_URL$SaveApiUrl',
-
           validateStatus: (int? status) {
             return status != null;
             // return status != null && status >= 200 && status < 300;
@@ -34,19 +38,20 @@ class DioHelper {
           }),
     );
   }
- static Future<List<Area>> fetchAreas() async {
-   final Dio dio = Dio(BaseOptions(
-     baseUrl: '$BASE_URL$SaveApiUrl',
-     headers: {'accept': '*/*'},
 
-     validateStatus: (int? status) {
-       return status != null;
-       // return status != null && status >= 200 && status < 300;
-     },
-     receiveDataWhenStatusError: true,
-   ));
+  static Future<List<Area>> fetchAreas() async {
+    final Dio dio = Dio(BaseOptions(
+      baseUrl: '$BASE_URL$SaveApiUrl',
+      headers: {'accept': '*/*'},
+      validateStatus: (int? status) {
+        return status != null;
+        // return status != null && status >= 200 && status < 300;
+      },
+      receiveDataWhenStatusError: true,
+    ));
     try {
-      Response response = await dio.get('http://egydns.ddns.net:8622/api/v1/area/unit');
+      Response response =
+          await dio.get('http://egydns.ddns.net:8622/api/v1/area/unit');
       if (response.statusCode == 200) {
         var data = response.data['data'] as List;
         List<Area> areas = data.map((json) => Area.fromJson(json)).toList();
@@ -59,13 +64,10 @@ class DioHelper {
     }
   }
 
-
-
   static Future<List<Unit>> fetchUnits() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -80,7 +82,8 @@ class DioHelper {
 
       if (response.statusCode == 200) {
         List<dynamic> unitsJson = response.data['data'];
-        List<Unit> units = unitsJson.map((json) => Unit.fromJson(json)).toList();
+        List<Unit> units =
+            unitsJson.map((json) => Unit.fromJson(json)).toList();
         return units;
       } else {
         throw Exception('Failed to load units');
@@ -91,7 +94,7 @@ class DioHelper {
   }
 
   static Future<List<VisitModel>> fetchData({
-
+    required BuildContext context,
     required String token,
     Map<String, dynamic>? parameters,
   }) async {
@@ -99,22 +102,26 @@ class DioHelper {
       Response response = await dio.get(
         '$BASE_URL$SaveApiUrl$getAllInvitationsEndPoint',
         queryParameters: parameters,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $TokenSave'}
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200) {
         List<dynamic> responseData = response.data['data']['data'];
         return responseData.map((json) => VisitModel.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        Fluttertoast.showToast(
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+
+        return []; // Return an empty list to prevent further processing.
       } else {
-        throw Exception('Failed to load data');
+        throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error: $e');
     }
   }
+
   static Future<List<InvitationResponse>> fetchDataToInvtations({
     required String token,
     Map<String, dynamic>? parameters,
@@ -132,7 +139,9 @@ class DioHelper {
 
       if (response.statusCode == 200) {
         List<dynamic> responseData = response.data['data']['data'];
-        return responseData.map((json) => InvitationResponse.fromJson(json)).toList();
+        return responseData
+            .map((json) => InvitationResponse.fromJson(json))
+            .toList();
       } else {
         throw Exception('Failed to load data');
       }
@@ -141,12 +150,10 @@ class DioHelper {
     }
   }
 
-
   static Future<List<Area>> fetchAreasWi(String ownerId) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -171,8 +178,7 @@ class DioHelper {
     }
   }
 
-
- static Future<List<Area>> fetchAreasWithoutAllOwners(String unitId) async {
+  static Future<List<Area>> fetchAreasWithoutAllOwners(String unitId) async {
     try {
       final response = await dio.get(
         '$BASE_URL$SaveApiUrl$GetUnitWithId$unitId',
@@ -193,12 +199,10 @@ class DioHelper {
     }
   }
 
-
   static Future<List<Area>> fetchAreasWithHaveOwners() async {
-     final Dio dio = Dio(BaseOptions(
+    final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -212,7 +216,8 @@ class DioHelper {
         // Parse the data into Area objects
         final areas = data.map((json) => Area.fromJson(json)).toList();
         // Filter the areas to include only those with owners
-        final areasWithOwners = areas.where((area) => area.owners.isNotEmpty).toList();
+        final areasWithOwners =
+            areas.where((area) => area.owners.isNotEmpty).toList();
         return areasWithOwners;
       } else {
         throw Exception('Failed to load areas');
@@ -222,6 +227,7 @@ class DioHelper {
       throw Exception('Failed to load areas');
     }
   }
+
   static Future<List<Area>> fetchAreasWithoutOwners() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
@@ -240,12 +246,13 @@ class DioHelper {
         final areas = data.map((json) => Area.fromJson(json)).toList();
         // Filter the areas to include only those without owners,
         // that are not deleted, and are active
-        final areasWithoutOwners = areas.where((area) =>
-        area.owners.isEmpty &&
-            !area.isDeleted &&
-            area.isUnit &&
-            area.isActive
-        ).toList();
+        final areasWithoutOwners = areas
+            .where((area) =>
+                area.owners.isEmpty &&
+                !area.isDeleted &&
+                area.isUnit &&
+                area.isActive)
+            .toList();
         return areasWithoutOwners;
       } else {
         throw Exception('Failed to load areas');
@@ -260,7 +267,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -278,7 +284,8 @@ class DioHelper {
       return response.data;
     } on DioError catch (e) {
       if (e.response != null) {
-        print('Error fetching user data: ${e.response?.statusCode} - ${e.response?.statusMessage}');
+        print(
+            'Error fetching user data: ${e.response?.statusCode} - ${e.response?.statusMessage}');
         if (e.response?.statusCode == 404) {
           return {
             'error': 'User not found',
@@ -290,6 +297,7 @@ class DioHelper {
       return {};
     }
   }
+
   static Future<Response> postSignIn({
     required String url,
     required Map<String, dynamic>? parameters,
@@ -304,7 +312,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -312,12 +319,12 @@ class DioHelper {
       receiveDataWhenStatusError: true,
     ));
 
-
     return await dio.post(
       url,
       data: jsonBody,
     );
   }
+
   static Future<Response> postSignUp({
     required String url,
     required FormData parameters,
@@ -325,7 +332,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -334,7 +340,9 @@ class DioHelper {
     ));
     return await Dio().post(url, data: parameters);
   }
+
   static Future<Response> postData({
+    Map<String, dynamic>? queryParameters,
     required String url,
     required String token,
     required Map<String, dynamic> data,
@@ -342,7 +350,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -353,8 +360,9 @@ class DioHelper {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     };
-    return await dio.post(url, data: data);
+    return await dio.post(url, data: data, queryParameters: queryParameters);
   }
+
   static Future<Response> postDataToBlackList({
     required String url,
     required String token,
@@ -363,7 +371,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -385,7 +392,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -405,7 +411,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -418,6 +423,7 @@ class DioHelper {
     };
     return await dio.post(url, data: data);
   }
+
   static Future<Response> postForgetPassword({
     required String url,
     required Map<String, dynamic>? parameters,
@@ -425,7 +431,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -453,7 +458,6 @@ class DioHelper {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -473,6 +477,7 @@ class DioHelper {
       data: jsonBody,
     );
   }
+
   static Future<ApiResponseToCreateInv> createToInvitations({
     required String url,
     required FormData param,
@@ -490,8 +495,7 @@ class DioHelper {
     return ApiResponseToCreateInv.fromJson(response.data);
   }
 
-
-static Future<DashboardTabsInfo?> fetchDashInfo() async {
+  static Future<DashboardTabsInfo?> fetchDashInfo(BuildContext context) async {
     try {
       final response = await Dio().get(
         '$BASE_URL$SaveApiUrl$getDashInfoEndPoint',
@@ -503,6 +507,18 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
       );
       if (response.statusCode == 200) {
         return DashboardTabsInfo.fromJson(response.data);
+      } else if (response.statusCode == 401) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+          // Replace with your LoginScreen widget
+          (route) => false,
+        );
+
+        // Show session expired message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Session expired. Please log in again.')),
+        );
       } else {
         return null;
       }
@@ -512,7 +528,9 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
     }
   }
 
- static Future<List<DocumentType>> getInvitationDocTypes() async {
+  static Future<List<DocumentType>> getInvitationDocTypes({
+    required BuildContext context,
+  }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
@@ -532,6 +550,14 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
           },
         ),
       );
+       if (response.statusCode == 401) {
+        Fluttertoast.showToast(
+
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+
+        return []; // Return an empty list to prevent further processing.
+      }
 
       if (response.statusCode != 200) {
         // Handle non-success status codes (e.g., 404, 500)
@@ -539,13 +565,20 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
       }
 
       final apiResponse = ApiResponse.fromJson(response.data);
-      return apiResponse.data;
 
+      // Filter out documents where "isDeleted" is true
+      List<DocumentType> filteredDocTypes = apiResponse.data
+          .where((docType) => docType.isDeleted == false)
+          .toList();
+
+      return filteredDocTypes;
     } catch (e) {
       // Handle errors (e.g., network issues, JSON parsing errors)
       print('Error fetching document types: $e');
       return []; // Return an empty list or handle the error as needed
-    }}
+    }
+  }
+
   static Future<Response> getDashboardInfo({
     required String url,
   }) async {
@@ -556,7 +589,6 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -576,7 +608,6 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -589,14 +620,13 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
   }
 
   static Future<Response> createInvitation(
-      {required String url, required FormData param,required String token}) async {
-
-
+      {required String url,
+      required FormData param,
+      required String token}) async {
     _debugPrintData(title: '==CreateInvitation==', endPoint: url, data: param);
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -624,7 +654,6 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -633,15 +662,14 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
     ));
     return await dio.post(url, data: data);
   }
+
   static Future<Response> getByID({
     required String url,
   }) async {
-    _debugPrintData(
-        title: '==GetByID==', endPoint: url);
+    _debugPrintData(title: '==GetByID==', endPoint: url);
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -650,6 +678,7 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
     ));
     return await dio.get(url);
   }
+
   static Future<Response> getData({
     required String url,
     Map<String, dynamic>? query,
@@ -658,7 +687,6 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
       headers: {'accept': '*/*'},
-
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -672,7 +700,6 @@ static Future<DashboardTabsInfo?> fetchDashInfo() async {
   }
 }
 
-
 _debugPrintData({String? title, String? endPoint, data}) {
   debugPrint('Title => $title');
   debugPrint('URL => ${endPoint!}');
@@ -683,11 +710,7 @@ _debugPrintData({String? title, String? endPoint, data}) {
   data != null ? printFullText('Body => $data') : null;
 }
 
-
-
 void printFullText(String text) {
   final pattern = RegExp('.{1,800}');
   pattern.allMatches(text).forEach((match) => print(match.group(0)));
-
 }
-

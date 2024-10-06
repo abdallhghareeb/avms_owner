@@ -114,7 +114,6 @@ class _AccountScreenState extends State<AccountScreen> {
                 onTap: ()async {
                   AuthCubit.get(context).signOut(context: context);
 
-
                 },
               ),
               SizedBox(height: 20.0),

@@ -94,6 +94,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return 'Failed to get device ID';
     }
   }
+
   Future<void> _fetchAreas() async {
     setState(() {
       if (selectedLocation == 'UnitAdmin') {
@@ -129,619 +130,629 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       body: SingleChildScrollView(
         child: SafeArea(
-          child: Container(
-            width: SizeConfig.screenWidth,
-            height: SizeConfig.screenHeight,
-            padding: EdgeInsets.all(borderRadius),
-            child: Stack(
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.asset(
-                      width: SizeConfig.screenWidth * 0.35,
-                      AppStrings.appLogo,
-                      alignment: Alignment.center,
-                    ),
-                  ],
-                ),
-                Center(
-                  child: Card(
-                    semanticContainer: true,
-                    elevation: elevation,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(borderRadius),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              setState(() {
+                _fetchAreas();
+              });
+            },
+            child: Container(
+              width: SizeConfig.screenWidth,
+              height: SizeConfig.screenHeight,
+              padding: EdgeInsets.all(borderRadius),
+              child: Stack(
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        width: SizeConfig.screenWidth * 0.35,
+                        AppStrings.appLogo,
+                        alignment: Alignment.center,
                       ),
-                    ),
-                    clipBehavior: Clip.antiAliasWithSaveLayer,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 16),
-                      child: Form(
-                        key: _formKey,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                Config.Localization['signup'],
-                                style: TextStyle(
-                                  color: AppColors.appColor,
-                                  fontSize: FontSize.s20,
-                                  fontFamily: FontFamily.fontFamily,
-                                  fontWeight: FontWeightManager.bold,
+                    ],
+                  ),
+                  Center(
+                    child: Card(
+                      semanticContainer: true,
+                      elevation: elevation,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(borderRadius),
+                        ),
+                      ),
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 16),
+                        child: Form(
+                          key: _formKey,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  Config.Localization['signup'],
+                                  style: TextStyle(
+                                    color: AppColors.appColor,
+                                    fontSize: FontSize.s20,
+                                    fontFamily: FontFamily.fontFamily,
+                                    fontWeight: FontWeightManager.bold,
+                                  ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Container(
-                                        width: 100,
-                                        height: 100,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                        ),
-                                        child: _image != null
-                                            ? Image.file(
-                                                File(_image!.path),
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Center(
-                                                child: Image(
-                                                  image: AssetImage(
-                                                      'assets/images/defultImage/def1.png'),
+                                Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: Container(
+                                          width: 100,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(50),
+                                          ),
+                                          child: _image != null
+                                              ? Image.file(
+                                                  File(_image!.path),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Center(
+                                                  child: Image(
+                                                    image: AssetImage(
+                                                        'assets/images/defultImage/def1.png'),
+                                                  ),
                                                 ),
-                                              ),
+                                        ),
                                       ),
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      right: 0,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          UploadImage();
-                                        },
-                                        child: CircleAvatar(
-                                          radius: 15,
-                                          backgroundColor: Colors.white,
-                                          child: Image(
-                                            image: AssetImage(
-                                                'assets/images/defultImage/camera.png'),
-                                            width: 20,
-                                            height: 20,
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            UploadImage();
+                                          },
+                                          child: CircleAvatar(
+                                            radius: 15,
+                                            backgroundColor: Colors.white,
+                                            child: Image(
+                                              image: AssetImage(
+                                                  'assets/images/defultImage/camera.png'),
+                                              width: 20,
+                                              height: 20,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: smallPadding,
-                                    vertical: midPadding),
-                                child: TextFormField(
-                                  controller: nameController,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: AppColors.offWhite,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        width: 5.0,
-                                        color: AppColors.secondaryColor,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: AppColors.offWhite,
-                                        width: 5.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    labelText: Config.Localization['fullName'],
-                                    prefixIcon: Icon(
-                                      Icons.person,
-                                      color: AppColors.appColor,
-                                    ),
-                                  ),
-                                  validator: Validator.validateName,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(smallPadding),
-                                child: TextFormField(
-                                  controller: emailController,
-                                  validator: Validator.validateEmail,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: AppColors.offWhite,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        width: 5.0,
-                                        color: AppColors.secondaryColor,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: AppColors.offWhite,
-                                        width: 5.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    labelText: Config.Localization['email'],
-                                    prefixIcon: Icon(
-                                      Icons.email,
-                                      color: AppColors.appColor,
-                                    ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(smallPadding),
-                                child: TextFormField(
-                                  controller: phoneController,
-                                  validator: Validator.validatePhone,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: AppColors.offWhite,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        width: 5.0,
-                                        color: AppColors.secondaryColor,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: AppColors.offWhite,
-                                        width: 5.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                    labelText: Config.Localization['phone'],
-                                    prefixIcon: Icon(
-                                      Icons.phone,
-                                      color: AppColors.appColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              AppSpaces.vSpace20,
-                              Text(
-                                'Choice your Roles:',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: FontSize.s16,
-                                    color: AppColors.appColor),
-                              ),
-                              AppSpaces.vSpace10,
-                              DropdownButton<String>(
-                                value: selectedLocation,
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    selectedLocation = newValue!;
-                                    _fetchAreas();
-                                  });
-                                },
-                                items: _locations.map<DropdownMenuItem<String>>((String location) {
-                                  return DropdownMenuItem<String>(
-                                    value: location,
-                                    child: Text(location),
-                                  );
-                                }).toList(),
-                              ),
-                              AppSpaces.vSpace20,
-                              Text(
-                                'Choice your Unit :',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: FontSize.s16,
-                                    color: AppColors.appColor),
-                              ),
-                              AppSpaces.vSpace10,
-
-
-                              if (selectedLocation == 'UnitAdmin')
-                                FutureBuilder<List<Area>>(
-                                  future: futureAreasWitout,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return CircularProgressIndicator();
-                                    } else if (snapshot.hasError) {
-                                      print('Error: ${snapshot.error}'); // Debugging
-                                      return Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.warning_amber),
-                                            Expanded(
-                                              child: Text('There is a problem with the network'),
-                                            ),
-                                          ],
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: smallPadding,
+                                      vertical: midPadding),
+                                  child: TextFormField(
+                                    controller: nameController,
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: AppColors.offWhite,
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          width: 5.0,
+                                          color: AppColors.secondaryColor,
                                         ),
-                                      );
-                                    } else if (snapshot.hasData) {
-                                      List<Area> areas = snapshot.data!;
-                                      return DropdownButton<int>(
-                                        hint: Text('Select an Area'),
-                                        value: selectedAreaIdWithOut,
-                                        onChanged: (int? newValue) {
-                                          setState(() {
-                                            selectedAreaIdWithOut = newValue;
-                                          });
-                                        },
-                                        items: areas.map<DropdownMenuItem<int>>(
-                                              (Area area) {
-                                            return DropdownMenuItem<int>(
-                                              value: area.id,
-                                              child: Text(area.name),
-                                            );
-                                          },
-                                        ).toList(),
-                                      );
-                                    } else {
-                                      return Text('No data');
-                                    }
-                                  },
-                                ),
-                              if (selectedLocation == 'user')
-                                FutureBuilder<List<Area>>(
-                                  future: futureAreas,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return CircularProgressIndicator();
-                                    } else if (snapshot.hasError) {
-                                      print('Error: ${snapshot.error}'); // Debugging
-                                      return Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.warning_amber),
-                                            Expanded(
-                                              child: Text('There is a problem with the network'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    } else if (snapshot.hasData) {
-                                      List<Area> areas = snapshot.data!;
-                                      return DropdownButton<int>(
-                                        hint: Text('Select an Area'),
-                                        value: selectedAreaId,
-                                        onChanged: (int? newValue) {
-                                          setState(() {
-                                            selectedAreaId = newValue;
-                                          });
-                                        },
-                                        items: areas.map<DropdownMenuItem<int>>(
-                                              (Area area) {
-                                            return DropdownMenuItem<int>(
-                                              value: area.id,
-                                              child: Text(area.name),
-                                            );
-                                          },
-                                        ).toList(),
-                                      );
-                                    } else {
-                                      return Text('No data');
-                                    }
-                                  },
-                                ),
-
-                              AppSpaces.vSpace20,
-                              FutureBuilder<String>(
-                                future: _deviceId,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                        child: CircularProgressIndicator());
-                                  } else if (snapshot.hasError) {
-                                    return Center(
-                                        child:
-                                            Text('Error: ${snapshot.error}'));
-                                  } else {
-                                    String deviceId =
-                                        snapshot.data ?? 'Unknown Device';
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Device ID: $deviceId',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                       ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: AppColors.offWhite,
+                                          width: 5.0,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                      ),
+                                      labelText:
+                                          Config.Localization['fullName'],
+                                      prefixIcon: Icon(
+                                        Icons.person,
+                                        color: AppColors.appColor,
+                                      ),
+                                    ),
+                                    validator: Validator.validateName,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(smallPadding),
+                                  child: TextFormField(
+                                    controller: emailController,
+                                    validator: Validator.validateEmail,
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: AppColors.offWhite,
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          width: 5.0,
+                                          color: AppColors.secondaryColor,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: AppColors.offWhite,
+                                          width: 5.0,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                      ),
+                                      labelText: Config.Localization['email'],
+                                      prefixIcon: Icon(
+                                        Icons.email,
+                                        color: AppColors.appColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(smallPadding),
+                                  child: TextFormField(
+                                    controller: phoneController,
+                                    validator: Validator.validatePhone,
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: AppColors.offWhite,
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          width: 5.0,
+                                          color: AppColors.secondaryColor,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: AppColors.offWhite,
+                                          width: 5.0,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                      ),
+                                      labelText: Config.Localization['phone'],
+                                      prefixIcon: Icon(
+                                        Icons.phone,
+                                        color: AppColors.appColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                AppSpaces.vSpace20,
+                                Padding(
+                                  padding: EdgeInsets.only(right: 150.w),
+                                  child: Text(
+                                    'Choice your Roles:',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: FontSize.s16,
+                                        color: AppColors.appColor),
+                                  ),
+                                ),
+                                AppSpaces.vSpace10,
+                                DropdownButton(
+                                  hint: Text('Please choose a location'),
+                                  // Not necessary for Option 1
+                                  value: selectedLocation,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      selectedLocation = newValue!;
+                                    });
+                                  },
+                                  items: _locations.map((location) {
+                                    return DropdownMenuItem(
+                                      child: new Text(location),
+                                      value: location,
                                     );
-                                  }
-                                },
-                              ),
-                              AppSpaces.vSpace20,
-                              BlocConsumer<AuthCubit, AuthState>(
-                                builder: (context, state) {
-                                  return ConditionalBuilder(
-                                    condition: state is! AuthLoading1,
-                                    builder: (context) => MainButton(
-                                      text: Config.Localization['SignUp'],
-                                      onPressed: () async {
-                                        FocusScope.of(context).unfocus();
-                                        if (!_formKey.currentState!.validate())
-                                          return;
+                                  }).toList(),
+                                ),
+                                AppSpaces.vSpace20,
+                                Padding(
+                                  padding: EdgeInsets.only(right: 150.w),
+                                  child: Text(
+                                    'Choice your Unit :',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: FontSize.s16,
+                                        color: AppColors.appColor),
+                                  ),
+                                ),
+                                if (selectedLocation == 'UnitAdmin')
+                                  FutureBuilder<List<Area>>(
+                                    future: futureAreasWitout, // Future that fetches areas without UnitAdmin
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return CircularProgressIndicator(); // Show loading indicator
+                                      } else if (snapshot.hasError) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            children: [
+                                              Text('Network problem'),
+                                              // Empty dropdown in case of error
+                                              DropdownButton<int>(
+                                                hint: Text('Select an Area'),
+                                                onChanged: null, // Disable selection in case of error
+                                                items: [],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                                        List<Area> areas = snapshot.data!;
 
-                                        _formKey.currentState!.save();
+                                        return StatefulBuilder(
+                                          builder: (BuildContext context, StateSetter setState) {
+                                            return DropdownButton<int>(
+                                              hint: Text('Select an Area'),
+                                              value: areas.any((area) => area.id == selectedAreaIdWithOut)
+                                                  ? selectedAreaIdWithOut
+                                                  : null, // Only set the value if it exists
+                                              onChanged: (int? newValue) {
+                                                setState(() {
+                                                  selectedAreaIdWithOut = newValue; // Update selected value
+                                                });
+                                              },
+                                              items: areas.map<DropdownMenuItem<int>>((Area area) {
+                                                return DropdownMenuItem<int>(
+                                                  value: area.id,
+                                                  child: Text(area.name),
+                                                );
+                                              }).toList(),
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text('No areas available'),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                if (selectedLocation == 'user')
+                                  FutureBuilder<List<Area>>(
+                                    future: futureAreas, // Future that fetches areas for the user
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return CircularProgressIndicator(); // Show loading indicator
+                                      } else if (snapshot.hasError) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            children: [
+                                              Text('Network problem'),
+                                              // Empty dropdown in case of error
+                                              DropdownButton<int>(
+                                                hint: Text('Select an Area'),
+                                                onChanged: null, // Disable selection in case of error
+                                                items: [],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                                        List<Area> areas = snapshot.data!;
 
-                                        print(
-                                            'Selected Location: $selectedLocation');
-                                        if (selectedLocation == 'user') {
+                                        return StatefulBuilder(
+                                          builder: (BuildContext context, StateSetter setState) {
+                                            return DropdownButton<int>(
+                                              hint: Text('Select an Area'),
+                                              value: areas.any((area) => area.id == selectedAreaId)
+                                                  ? selectedAreaId
+                                                  : null, // Only set value if it exists
+                                              onChanged: (int? newValue) {
+                                                setState(() {
+                                                  selectedAreaId = newValue; // Update selected value
+                                                });
+                                              },
+                                              items: areas.map<DropdownMenuItem<int>>((Area area) {
+                                                return DropdownMenuItem<int>(
+                                                  value: area.id,
+                                                  child: Text(area.name),
+                                                );
+                                              }).toList(),
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text('No areas available'),
+                                        );
+                                      }
+                                    },
+                                  ),
+
+                                AppSpaces.vSpace20,
+                                BlocConsumer<AuthCubit, AuthState>(
+                                  builder: (context, state) {
+                                    return ConditionalBuilder(
+                                      condition: state is! AuthLoading1,
+                                      builder: (context) => MainButton(
+                                        text: Config.Localization['SignUp'],
+                                        onPressed: () async {
+                                          FocusScope.of(context).unfocus();
+                                          if (!_formKey.currentState!
+                                              .validate()) return;
+
+                                          _formKey.currentState!.save();
+
                                           print(
-                                              'Selected Area ID (User): $selectedAreaId');
-                                          SharedPreferences prefs;
-                                          prefs = await SharedPreferences
-                                              .getInstance();
-                                          SaveEmailRegisterToReset =
-                                              emailController!.text;
-                                          String Id = await getDeviceId();
-                                          print(Id);
+                                              'Selected Location: $selectedLocation');
+                                          if (selectedLocation == 'user') {
+                                            print(
+                                                'Selected Area ID (User): $selectedAreaId');
+                                            SharedPreferences prefs;
+                                            prefs = await SharedPreferences
+                                                .getInstance();
+                                            SaveEmailRegisterToReset =
+                                                emailController!.text;
+                                            String Id = await getDeviceId();
+                                            print(Id);
 
-                                          prefs.setString(
-                                              'SaveEmailRegisterToReset',
-                                              emailController!.text);
+                                            prefs.setString(
+                                                'SaveEmailRegisterToReset',
+                                                emailController!.text);
 
-                                          if (_image != null) {
-                                            AuthCubit.get(context).signUp(
-                                                file: _image!,
-                                                email: emailController!.text,
-                                                phone: phoneController!.text,
-                                                roles: selectedLocation,
-                                                name: nameController!.text,
-                                                uni: Id,
-                                                area: '$selectedAreaId');
-                                            checkUser = true;
-                                            checkUnitAdmin = false;
-                                          } else {
-                                            ByteData? assetByteData =
-                                                await rootBundle.load(
-                                                    'assets/images/defultImage/def1.png');
-                                            List<int> bytes = assetByteData
-                                                .buffer
-                                                .asUint8List();
+                                            if (_image != null) {
+                                              AuthCubit.get(context).signUp(
+                                                  file: _image!,
+                                                  email: emailController!.text,
+                                                  phone: phoneController!.text,
+                                                  roles: selectedLocation,
+                                                  name: nameController!.text,
+                                                  uni: Id,
+                                                  area: '$selectedAreaId');
+                                              checkUser = true;
+                                              checkUnitAdmin = false;
+                                            } else {
+                                              ByteData? assetByteData =
+                                                  await rootBundle.load(
+                                                      'assets/images/defultImage/def1.png');
+                                              List<int> bytes = assetByteData
+                                                  .buffer
+                                                  .asUint8List();
 
-                                            // Get temporary directory path
-                                            Directory tempDir =
-                                                await getTemporaryDirectory();
-                                            String tempPath = tempDir.path;
+                                              // Get temporary directory path
+                                              Directory tempDir =
+                                                  await getTemporaryDirectory();
+                                              String tempPath = tempDir.path;
 
-                                            // Create temporary file and write bytes to it
-                                            File tempFile =
-                                                File('$tempPath/def1.png');
-                                            await tempFile.writeAsBytes(bytes);
+                                              // Create temporary file and write bytes to it
+                                              File tempFile =
+                                                  File('$tempPath/def1.png');
+                                              await tempFile
+                                                  .writeAsBytes(bytes);
 
-                                            setState(() {
-                                              // Convert File to XFile
-                                              _image = XFile(tempFile.path);
-                                            });
-                                            AuthCubit.get(context).signUp(
-                                                file: _image,
-                                                email: emailController!.text,
-                                                phone: phoneController!.text,
-                                                roles: selectedLocation,
-                                                name: nameController!.text,
-                                                uni: Id,
-                                                area: '$selectedAreaId');
-                                            checkUser = true;
-                                            checkUnitAdmin = false;
+                                              setState(() {
+                                                // Convert File to XFile
+                                                _image = XFile(tempFile.path);
+                                              });
+                                              AuthCubit.get(context).signUp(
+                                                  file: _image,
+                                                  email: emailController!.text,
+                                                  phone: phoneController!.text,
+                                                  roles: selectedLocation,
+                                                  name: nameController!.text,
+                                                  uni: Id,
+                                                  area: '$selectedAreaId');
+                                              checkUser = true;
+                                              checkUnitAdmin = false;
+                                            }
+                                          } else if (selectedLocation ==
+                                              'UnitAdmin') {
+                                            String Id = await getDeviceId();
+                                            print(
+                                                'Selected Area ID (UnitAdmin): $selectedAreaIdWithOut');
+                                            int? value = selectedAreaIdWithOut;
+                                            if (_image != null) {
+                                              AuthCubit.get(context).signUp(
+                                                  file: _image!,
+                                                  email: emailController!.text,
+                                                  phone: phoneController!.text,
+                                                  roles: selectedLocation,
+                                                  name: nameController!.text,
+                                                  uni: Id,
+                                                  area: '$value');
+                                              checkUnitAdmin = true;
+                                              checkUser = false;
+                                            } else {
+                                              ByteData? assetByteData =
+                                                  await rootBundle.load(
+                                                      'assets/images/defultImage/def1.png');
+                                              List<int> bytes = assetByteData
+                                                  .buffer
+                                                  .asUint8List();
+
+                                              // Get temporary directory path
+                                              Directory tempDir =
+                                                  await getTemporaryDirectory();
+                                              String tempPath = tempDir.path;
+
+                                              // Create temporary file and write bytes to it
+                                              File tempFile =
+                                                  File('$tempPath/def1.png');
+                                              await tempFile
+                                                  .writeAsBytes(bytes);
+
+                                              setState(() {
+                                                // Convert File to XFile
+                                                _image = XFile(tempFile.path);
+                                              });
+                                              AuthCubit.get(context).signUp(
+                                                  file: _image,
+                                                  email: emailController!.text,
+                                                  phone: phoneController!.text,
+                                                  roles: selectedLocation,
+                                                  name: nameController!.text,
+                                                  uni: Id,
+                                                  area: '$value');
+                                              checkUnitAdmin = true;
+                                              checkUser = false;
+                                            }
                                           }
-                                        } else if (selectedLocation ==
-                                            'UnitAdmin') {
-                                          String Id = await getDeviceId();
-                                          print(
-                                              'Selected Area ID (UnitAdmin): $selectedAreaIdWithOut');
-                                          int? value = selectedAreaIdWithOut;
-                                          if (_image != null) {
-                                            AuthCubit.get(context).signUp(
-                                                file: _image!,
-                                                email: emailController!.text,
-                                                phone: phoneController!.text,
-                                                roles: selectedLocation,
-                                                name: nameController!.text,
-                                                uni: Id,
-                                                area: '$value');
-                                            checkUnitAdmin = true;
-                                            checkUser = false;
-                                          } else {
-                                            ByteData? assetByteData =
-                                                await rootBundle.load(
-                                                    'assets/images/defultImage/def1.png');
-                                            List<int> bytes = assetByteData
-                                                .buffer
-                                                .asUint8List();
+                                        },
+                                      ),
+                                      fallback: (context) =>
+                                          CircularProgressIndicator(),
+                                    );
+                                  },
+                                  listener: (context, state) async {
+                                    if (state is AuthLoading1) {
+                                      print('lllllllod');
+                                    } else if (state
+                                        is AuthAuthenticatedSignUp) {
+                                      SharedPreferences prefs;
+                                      prefs =
+                                          await SharedPreferences.getInstance();
+                                      prefs.setString('RigisterSave',
+                                          'Registration successful');
+                                      saveEmail = emailController!.text;
+                                      prefs.setString(
+                                          'emailSave', '${saveEmail}');
+                                      SaveEmailRegisterToReset =
+                                          emailController!.text;
 
-                                            // Get temporary directory path
-                                            Directory tempDir =
-                                                await getTemporaryDirectory();
-                                            String tempPath = tempDir.path;
-
-                                            // Create temporary file and write bytes to it
-                                            File tempFile =
-                                                File('$tempPath/def1.png');
-                                            await tempFile.writeAsBytes(bytes);
-
-                                            setState(() {
-                                              // Convert File to XFile
-                                              _image = XFile(tempFile.path);
-                                            });
-                                            AuthCubit.get(context).signUp(
-                                                file: _image,
-                                                email: emailController!.text,
-                                                phone: phoneController!.text,
-                                                roles: selectedLocation,
-                                                name: nameController!.text,
-                                                uni: Id,
-                                                area: '$value');
-                                            checkUnitAdmin = true;
-                                            checkUser = false;
-                                          }
-                                        }
-                                      },
-                                    ),
-                                    fallback: (context) =>
-                                        CircularProgressIndicator(),
-                                  );
-                                },
-                                listener: (context, state) async {
-                                  if (state is AuthLoading1) {
-                                    print('lllllllod');
-                                  } else if (state is AuthAuthenticatedSignUp) {
-                                    SharedPreferences prefs;
-                                    prefs =
-                                        await SharedPreferences.getInstance();
-                                    prefs.setString('RigisterSave',
-                                        'Registration successful');
-                                    saveEmail = emailController!.text;
-                                    prefs.setString(
-                                        'emailSave', '${saveEmail}');
-                                    SaveEmailRegisterToReset =
-                                        emailController!.text;
-
-                                    print(state.registerResponse.message);
-                                    print(state.registerResponse.message);
-                                    Fluttertoast.showToast(
-                                        toastLength: Toast.LENGTH_LONG,
-                                        msg:
-                                            "${state.registerResponse.data!.confirmMessage}",
-                                        gravity: ToastGravity.BOTTOM,
-                                        timeInSecForIosWeb: 5,
-                                        backgroundColor: Colors.green,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0);
-
-                                    print(
-                                        ' dattttta ${state.registerResponse.message}');
-                                    Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                ResetPasswordScreen()),
-                                        (route) => false);
-                                    print('zay el foul');
-                                  } else if (state is AuthError1) {
-                                    if (selectedAreaIdWithOut == null &&
-                                        checkUnitAdmin == true) {
-                                      Fluttertoast.showToast(
-                                          toastLength: Toast.LENGTH_LONG,
-                                          msg: "Please Choice Unit",
-                                          gravity: ToastGravity.BOTTOM,
-                                          timeInSecForIosWeb: 5,
-                                          backgroundColor: Colors.red,
-                                          textColor: Colors.white,
-                                          fontSize: 16.0);
-                                    } else if (selectedAreaId == null &&
-                                        checkUser == true) {
-                                      Fluttertoast.showToast(
-                                          toastLength: Toast.LENGTH_LONG,
-                                          msg: "Please Choice Unit",
-                                          gravity: ToastGravity.BOTTOM,
-                                          timeInSecForIosWeb: 5,
-                                          backgroundColor: Colors.red,
-                                          textColor: Colors.white,
-                                          fontSize: 16.0);
-                                    } else if (state.registerModel.message ==
-                                        null) {
+                                      print(state.registerResponse.message);
+                                      print(state.registerResponse.message);
                                       Fluttertoast.showToast(
                                           toastLength: Toast.LENGTH_LONG,
                                           msg:
-                                              "License limit reached. Please update your license.",
+                                              "${state.registerResponse.data!.confirmMessage}",
                                           gravity: ToastGravity.BOTTOM,
                                           timeInSecForIosWeb: 5,
-                                          backgroundColor: Colors.red,
+                                          backgroundColor: Colors.green,
                                           textColor: Colors.white,
                                           fontSize: 16.0);
-                                    } else {
-                                      Fluttertoast.showToast(
-                                          toastLength: Toast.LENGTH_LONG,
-                                          msg: "${state.registerModel.message}",
-                                          gravity: ToastGravity.BOTTOM,
-                                          timeInSecForIosWeb: 5,
-                                          backgroundColor: Colors.red,
-                                          textColor: Colors.white,
-                                          fontSize: 16.0);
+
+                                      print(
+                                          ' dattttta ${state.registerResponse.message}');
+                                      Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ResetPasswordScreen()),
+                                          (route) => false);
+                                      print('zay el foul');
+                                    } else if (state is AuthError1) {
+                                      if (selectedAreaIdWithOut == null &&
+                                          checkUnitAdmin == true) {
+                                        Fluttertoast.showToast(
+                                            toastLength: Toast.LENGTH_LONG,
+                                            msg: "Please Choice Unit",
+                                            gravity: ToastGravity.BOTTOM,
+                                            timeInSecForIosWeb: 5,
+                                            backgroundColor: Colors.red,
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      } else if (selectedAreaId == null &&
+                                          checkUser == true) {
+                                        Fluttertoast.showToast(
+                                            toastLength: Toast.LENGTH_LONG,
+                                            msg: "Please Choice Unit",
+                                            gravity: ToastGravity.BOTTOM,
+                                            timeInSecForIosWeb: 5,
+                                            backgroundColor: Colors.red,
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      } else if (state.registerModel.message ==
+                                          null) {
+                                        Fluttertoast.showToast(
+                                            toastLength: Toast.LENGTH_LONG,
+                                            msg:
+                                                "License limit reached. Please update your license.",
+                                            gravity: ToastGravity.BOTTOM,
+                                            timeInSecForIosWeb: 5,
+                                            backgroundColor: Colors.red,
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            toastLength: Toast.LENGTH_LONG,
+                                            msg:
+                                                "${state.registerModel.message}",
+                                            gravity: ToastGravity.BOTTOM,
+                                            timeInSecForIosWeb: 5,
+                                            backgroundColor: Colors.red,
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      }
                                     }
-                                  }
-                                },
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(0.0),
-                                child: Row(
+                                  },
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(0.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'If you want to login',
+                                        style: TextStyle(
+                                            fontSize: FontSize.s15,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        LoginScreen()));
+                                          },
+                                          child: Text(
+                                              '${Config.Localization['login']}'))
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  height: 1,
+                                  width: 150,
+                                  color: Colors.grey,
+                                ),
+                                Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'If you want to login',
+                                      'Back To API URL ',
                                       style: TextStyle(
                                           fontSize: FontSize.s15,
                                           fontWeight: FontWeight.w500),
                                     ),
                                     TextButton(
                                         onPressed: () {
-                                          Navigator.push(
+                                          Navigator.pushAndRemoveUntil(
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                      LoginScreen()));
+                                                      ConfigScreen()),
+                                              (route) => false);
                                         },
-                                        child: Text(
-                                            '${Config.Localization['login']}'))
+                                        child: Text('API URL'))
                                   ],
                                 ),
-                              ),
-                              Container(
-                                height: 1,
-                                width: 150,
-                                color: Colors.grey,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Back To API URL ',
-                                    style: TextStyle(
-                                        fontSize: FontSize.s15,
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.pushAndRemoveUntil(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ConfigScreen()),
-                                            (route) => false);
-                                      },
-                                      child: Text('API URL'))
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

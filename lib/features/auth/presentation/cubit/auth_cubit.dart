@@ -49,7 +49,7 @@ class AuthCubit extends Cubit<AuthState> {
         parameters: {
           'username': email,
           'password': password,
-          //'uniqCode': uniqCode,
+          'uniqCode': uniqCode,
         },
       );
 

@@ -175,11 +175,11 @@ Future handleRequest(Future<Response> Function() apiRequest,
       case 500:
         // if (context.mounted) {
         SnackBarGlobal.show(
-          message: "Network error, please check Network",
+          message: "",
         );
         // }
         throw NetworkException(
-          message: response["message"] + "Network error, please check Network",
+          message: response["message"] ,
           code: 500,
         );
       case 400:
@@ -188,7 +188,7 @@ Future handleRequest(Future<Response> Function() apiRequest,
         );
 
         throw NetworkException(
-          message: response["message"] + "Network error, please check Network",
+          message: response["message"] + "",
           code: 500,
         );
 

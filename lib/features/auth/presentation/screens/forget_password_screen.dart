@@ -69,9 +69,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
             content: "resetMessageSentSuccessfully",
             showCancelButton: false,
             onOkPressed: () =>
-                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-                    builder: (context) => ResetPasswordToForgetPassScreen()), (
-                    route) => false));
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => ResetPasswordToForgetPassScreen()),
+                  ));
             } else {
         // Handle error response
         ScaffoldMessenger.of(context).showSnackBar(

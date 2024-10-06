@@ -1,3 +1,4 @@
+import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_size.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -26,10 +27,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _currentPage = 1;
   bool _isLoadingMore = false;
   List<VisitModel> _recentInvitations = [];
+  bool _hasMoreData = true;
+  bool _hasNetworkError = false;
 
   @override
   void initState() {
     super.initState();
+    // Initialize data fetching
+    _checkNetworkAndFetchData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // You may want to refetch data when dependencies change
     _checkNetworkAndFetchData();
   }
 
@@ -43,11 +54,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _hasNetwork = true;
         _currentPage = 1; // Reset to first page on network check
-        _dashboardInfo = DioHelper.fetchDashInfo();
+        _dashboardInfo = DioHelper.fetchDashInfo(context);
         _fetchRecentInvitations();
       });
     }
   }
+
   String formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return 'N/A';
     try {
@@ -58,6 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return 'N/A';
     }
   }
+
   Future<void> _fetchRecentInvitations({int pageNumber = 1}) async {
     setState(() {
       _isLoadingMore = true;
@@ -65,6 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final List<VisitModel> allInvitations = await DioHelper.fetchData(
         token: TokenSave!,
+        context: context,
         parameters: {
           "PageNumber": pageNumber,
         },
@@ -91,11 +105,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Today Dashboard',style: TextStyle(
+          color: Colors.white,
+          fontSize: 20
+        ),),
+        backgroundColor:  AppColors.primaryColor,
+
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -148,7 +168,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   CarouselSlider(
                     options: CarouselOptions(
-                      height: SizeConfig.screenHeight * 0.25,
+
+                      height: SizeConfig.screenHeight * 0.20,
                       viewportFraction: 1.0,
                       initialPage: 0,
                       enableInfiniteScroll: true,
@@ -161,29 +182,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       enlargeFactor: 0.17,
                     ),
                     items: [
-                      CarouselCard(
-                        itemTitle: "Total Invitations Today",
-                        itemCount: info.totalInvitation,
-                        itemColor: Colors.blue,
-                        itemIcon: Icons.class_,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CarouselCard(
+                          itemTitle: "Total Invitations ",
+                          itemCount: info.totalInvitation,
+                          itemColor: Colors.blue,
+                          itemIcon: Icons.class_,
+                        ),
                       ),
-                      CarouselCard(
-                        itemTitle: "Entered",
-                        itemCount: info.entered,
-                        itemColor: Colors.green,
-                        itemIcon: Icons.transit_enterexit,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CarouselCard(
+                          itemTitle: "Entered",
+                          itemCount: info.entered,
+                          itemColor: Colors.green,
+                          itemIcon: Icons.transit_enterexit,
+                        ),
                       ),
-                      CarouselCard(
-                        itemTitle: "Exited",
-                        itemCount: info.exited,
-                        itemColor: Colors.red,
-                        itemIcon: Icons.exit_to_app,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CarouselCard(
+                          itemTitle: "Exited",
+                          itemCount: info.exited,
+                          itemColor: Colors.red,
+                          itemIcon: Icons.exit_to_app,
+                        ),
                       ),
-                      CarouselCard(
-                        itemTitle: "Pending",
-                        itemCount: info.pending,
-                        itemColor: Colors.orange,
-                        itemIcon: Icons.pending,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CarouselCard(
+                          itemTitle: "Pending",
+                          itemCount: info.pending,
+                          itemColor: Colors.orange,
+                          itemIcon: Icons.pending,
+                        ),
                       ),
                     ],
                   ),
@@ -217,15 +250,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               return false;
             },
             child: ListView.builder(
-              itemCount:
-               _recentInvitations.length,
+              itemCount: _recentInvitations.length,
               itemBuilder: (context, index) {
                 VisitModel invitation = _recentInvitations[index];
                 return GestureDetector(
                   onTap: () => _showDetailsDialog(context, invitation),
                   child: Container(
-                    margin:
-                    EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                     padding: EdgeInsets.all(12.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -235,7 +266,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           color: Colors.grey.withOpacity(0.5),
                           spreadRadius: 2,
                           blurRadius: 5,
-                          offset: Offset(0, 3), // changes position of shadow
+                          offset: Offset(0, 3),
                         ),
                       ],
                       border: Border.all(
@@ -252,12 +283,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12.0),
                               child: Image.network(
-                                invitation.documentImage!,
+                                // Use default image if documentImage is null or empty
+                                invitation.documentImage?.isNotEmpty == true
+                                    ? invitation.documentImage!
+                                    : 'assets/images/defultImage/def1.png',
                                 width: double.infinity,
                                 height: 160,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    Image.asset('assets/placeholder_image.png'),
+                                    Image.asset('assets/images/defultImage/def1.png'),
                               ),
                             ),
                           ),
@@ -275,8 +309,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               SizedBox(height: 8),
                               Text(
                                 'Date: ${formatDate(invitation.registrationDate)}',
-                                style:
-                                TextStyle(fontSize: 14, color: Colors.grey),
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
                               ),
                               SizedBox(height: 8),
                               Text(
@@ -286,8 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               SizedBox(height: 8),
                               Text(
                                 'Status: ${invitation.status}',
-                                style:
-                                TextStyle(fontSize: 14, color: Colors.green),
+                                style: TextStyle(fontSize: 14, color: Colors.green),
                               ),
                             ],
                           ),
@@ -302,11 +334,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         if (_isLoadingMore)
           SizedBox(
-            height: 50, // Adjust height as needed
-            width: 50, // Adjust width as needed
+            height: 50,
+            width: 50,
             child: Center(
               child: CircularProgressIndicator(
-                strokeWidth: 3.0, // Adjust stroke width as needed
+                strokeWidth: 3.0,
               ),
             ),
           ),
@@ -366,8 +398,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               Text('Card Number: ${invitation.cardNumber ?? 'N/A'}'),
               Text('Created At: ${invitation.expiryDate ?? 'N/A'}'),
-              Text(
-                  'Registration Date: ${invitation.registrationDate ?? 'N/A'}'),
+              Text('Registration Date: ${invitation.registrationDate ?? 'N/A'}'),
             ],
           ),
           actions: [

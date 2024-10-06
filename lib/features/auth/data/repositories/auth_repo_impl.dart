@@ -42,12 +42,11 @@ class AuthRepoImpl extends AuthRepo {
   @override
   Future<void> signOut({required BuildContext context}) async {
     _clearCache();
-    // Navigator.pop(context);
-    PersistentNavBarNavigator.pushDynamicScreen(
+
+    pushDynamicScreenAndRemove(
         context, screen: MaterialPageRoute(builder: (context) => LoginScreen()),
         withNavBar: false);
 
-    // Navigator.of(context).popUntil(ModalRoute.withName(LoginScreen.route));
   }
 
   @override
@@ -116,8 +115,18 @@ class AuthRepoImpl extends AuthRepo {
     await CacheHelper.removeData(key: CacheHelper.userTokenKey);
 
   }
+  static Future<T?> pushDynamicScreenAndRemove<T>(
+      final BuildContext context, {
+        required final Route<T> screen,
+        bool? withNavBar,
+      }) {
+    withNavBar ??= true;
+    return Navigator.of(context, rootNavigator: !withNavBar)
+        .pushAndRemoveUntil<T>(screen, (Route<dynamic> route) => false);
+  }
 
-  // @override
+
+// @override
   // Future<AreaResponse> getAreaUnit()async {
   //   final res = await handleRequest(
   //           () => DioHelper.getAreaUnit(url: SaveApiUrl! + getAreaUnitEndPoint));

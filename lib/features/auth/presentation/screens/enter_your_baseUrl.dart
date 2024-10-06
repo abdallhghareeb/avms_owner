@@ -43,7 +43,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   Future<void> _saveToSharedPreferences() async {
     String apiURL = _apiController.text;
-    if (apiURL.isNotEmpty && apiURL.startsWith('egydns.ddns.net:')) {
+    if (apiURL.isNotEmpty ) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
       prefs.setString('apiUrl', apiURL);

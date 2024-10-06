@@ -68,10 +68,8 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
     });
   }
 
-  List<DateTime>? dateTimeList = [
-    DateTime.now(),
-    DateTime.now().add(Duration(days: 1)),
-  ];
+  List<DateTime>? dateTimeList;
+
 
   bool pressed = false;
 
@@ -84,9 +82,41 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
     nationalIdController = TextEditingController();
     futureAreasWithOwnerId = DioHelper.fetchAreasWi(userid!);
     futureAreas = fetchAreas();
-    futureDocumentTypes = DioHelper.getInvitationDocTypes();
+    futureDocumentTypes = DioHelper.getInvitationDocTypes(context: context);
   }
+  void showTopNotification(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50, // Adjust this value to position the notification
+        left: 0,
+        right: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(16),
+            margin: EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.red, // Change to your preferred color
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ),
+      ),
+    );
 
+    overlay.insert(overlayEntry);
+
+    // Remove the notification after a delay
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
   void clearCreateInvitationsFields() {
     setState(() {
       nameController?.clear();
@@ -106,7 +136,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
   }
 
   Future<List<DocumentType>> fetchDocType() async {
-    return await DioHelper.getInvitationDocTypes();
+    return await DioHelper.getInvitationDocTypes(context: context);
   }
 
   void refreshAreas() {
@@ -145,7 +175,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
             return SafeArea(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  
+
                   setState(() {
                     futureAreas = fetchAreas();
                     futureDocumentTypes = fetchDocType();
@@ -530,9 +560,9 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                           child: Text(
                                             '${imageText}',
                                             style: TextStyle(
-                                              fontSize: 15.sp, // Adjust font size using ScreenUtil
-                                              fontWeight: FontWeight.bold,
-                                              color:text_color
+                                                fontSize: 15.sp, // Adjust font size using ScreenUtil
+                                                fontWeight: FontWeight.bold,
+                                                color:text_color
                                             ),
                                           ),
                                         )
@@ -570,14 +600,46 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                   text: Config.Localization['send'],
                                   onPressed: () async {
                                     FocusScope.of(context).unfocus();
+
+                                    // Validate form fields
                                     if (!createInvitationFormKey.currentState!
                                         .validate()) return;
-                if (_image==null) {
-                  imageText='please enter your image ';
-                  text_color=Colors.red;
+                                    if(selectedAreaIdWithOwnerId == null &&selectedDocumentTypeId == null){
+                                      showTopNotification(context,
+                                          'Please select  Area and DocumentType ');
+                                      return;
+                                    }else
+                                    if (selectedAreaIdWithOwnerId == null) {
+                                      showTopNotification(context,
+                                          'Please select an Area');
+                                      return;
+                                    }else
+                                    if (selectedDocumentTypeId == null) {
+                                      showTopNotification(context,
+                                          'Please select a DocumentType');
 
-                }
-                                    await HomeCubit.get(context).createInvitation(
+                                      return;
+                                    }
+
+                                    // Validate date selection
+                                    if (dateTimeList == null ||
+                                        dateTimeList!.length < 2) {
+                                      showTopNotification(context,
+                                          'Please enter both Register and Expired Dates');
+                                      return;
+                                    }
+
+                                    // Check if the register date is before the expired date
+                                    if (dateTimeList![0]
+                                        .isAfter(dateTimeList![1])) {
+                                      showTopNotification(context,
+                                          'Register Date must be before Expired Date');
+                                      return;
+                                    }
+
+                                    // Proceed with creating the invitation
+                                    await HomeCubit.get(context)
+                                        .createInvitation(
                                       context: context,
                                       name: nameController!.text,
                                       phone: phoneController!.text,
@@ -585,16 +647,19 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                       nationalId: nationalIdController!.text,
                                       registerDate: dateTimeList!.first,
                                       expiredDate: dateTimeList!.last,
-                                      file: _image!,
                                       AreaId: '$selectedAreaIdWithOwnerId',
                                       token: TokenSave!,
                                       DocTypeId: selectedDocumentTypeId!,
+                                      file:
+                                      _image, // Pass null if _image is null
                                     );
+
                                     // Clear the image after successful creation
                                     setState(() {
                                       _image = null;
                                     });
 
+                                    // Clear input fields
                                     clearCreateInvitationsFields();
                                     (context as Element).reassemble();
                                   },

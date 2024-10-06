@@ -45,5 +45,14 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Add the following keys for camera, photo library, and microphone permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to the camera to take photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to the photo library to select images.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to the microphone for video recording.</string>
+
 </dict>
 </plist>

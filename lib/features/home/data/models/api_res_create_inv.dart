@@ -20,7 +20,7 @@ class ApiResponseToCreateInv {
       statusCode: json['statusCode'] ?? 0,
       meta: json['meta'],
       succeeded: json['succeeded'] ?? false,
-      message: json['message'] ?? 'No message',
+      message: json['message'] ?? 'You cannot send invitations as you are in the blacklist.',
       errors: json['errors'],
       data: json['data'] != null ? Data.fromJson(json['data']) : null,
     );

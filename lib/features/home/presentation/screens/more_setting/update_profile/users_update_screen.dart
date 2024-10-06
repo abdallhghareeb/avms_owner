@@ -1,5 +1,6 @@
 import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/config.dart';
+import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:avms/features/home/data/models/get_all_users.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/update_profile/show_update.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
@@ -31,6 +32,7 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
     futureAreas = DioHelper.fetchAreasWi(userid!);
   }
 
+
   Future<List<GetUserModel>> _fetchUsersWithToken() async {
     if (TokenSave == null) {
       _handleError('Token is null');
@@ -55,11 +57,17 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
 
         _hasError = false;
         return users;
+      }else if(response.statusCode==401){
+        Fluttertoast.showToast(
+
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+        return[];
       } else {
         throw Exception('Failed to fetch users');
       }
     } catch (e) {
-      _handleError('Error fetching users: $e');
+      _handleError('Error fetching users:  No Internet');
       return [];
     }
   }
@@ -82,6 +90,48 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
       _futureUsers = _fetchUsersWithToken();
     });
   }
+  Future<void> _deleteUser(String userId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    if (TokenSave == null) {
+      _handleError('Token is null');
+      return;
+    }
+
+    try {
+      final response = await DioHelper.postData(
+        url: '$BASE_URL$SaveApiUrl/api/v1/user/delete',
+        token: TokenSave!,
+        data: {'id': userId},
+      );
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: 'User deleted successfully',
+          toastLength: Toast.LENGTH_SHORT,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+      }else if(response.statusCode==401){
+        Fluttertoast.showToast(
+
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+
+      } else {
+        _handleError('Failed to delete user');
+      }
+    } catch (e) {
+      _handleError('Error deleting user: No Internet');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
 
   Future<void> _updateAccountStatus(String userId, int status) async {
     setState(() {
@@ -107,16 +157,50 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-      } else {
+        _refreshUsers();
+
+      } else if (response.statusCode==401){
+        Fluttertoast.showToast(
+
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+
+      }else {
         _handleError('Failed to update status');
       }
     } catch (e) {
-      _handleError('Error updating status: $e');
+      _handleError('Error updating status:No Internet');
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+  void _showDeleteConfirmationDialog(String userId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete User'),
+          content: Text('Are you sure you want to delete this user?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                _deleteUser(userId); // Call the delete method
+              },
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _updateUser(
@@ -165,7 +249,7 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
         _handleError('Failed to update user');
       }
     } catch (e) {
-      _handleError('Error updating user: $e');
+      _handleError('Error updating user: No Internet');
     } finally {
       setState(() {
         _isLoading = false;
@@ -190,7 +274,7 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
       areas = await DioHelper.fetchAreasWi(userid!);
     } catch (e) {
       hasError = true;
-      _handleError('Error fetching areas: $e');
+      _handleError('Error fetching areas: No Internet');
     }
 
     if (hasError) return;
@@ -308,6 +392,13 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
                 icon: Icon(Icons.edit, color: AppColors.primaryColor),
                 onPressed: () => _showUpdateUserDialog(user),
               ),
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.red), // Delete icon
+                onPressed: () {
+                  // Add your delete logic here
+                  _showDeleteConfirmationDialog(user.userId);
+                },
+              ),
             ],
           ),
         );
@@ -315,27 +406,39 @@ class _UpdateUsersScreenState extends State<UpdateUsersScreen> {
     );
   }
 
+
   Widget _buildStatusDropdown(GetUserModel user) {
-    return DropdownButton<int>(
-      hint: Text('${user.accountStatus}'),
-      value: _selectedStatusMap[user.userId],
-      items: [
-        DropdownMenuItem(value: 0, child: Text('Pending')),
-        DropdownMenuItem(value: 1, child: Text('Reject')),
-        DropdownMenuItem(value: 2, child: Text('Accept')),
-      ],
-      onChanged: (status) {
-        if (status != null) {
-          setState(() {
-            _selectedStatusMap[user.userId] = status;
-            _updateAccountStatus(user.userId, status);
-          });
-        }
-      },
-      dropdownColor: Colors.white,
-      icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+    bool isStatusFinal = user.accountStatus == 'Reject' || user.accountStatus == 'Accept';
+
+    return IgnorePointer(
+      ignoring: isStatusFinal,
+      child: DropdownButton<int>(
+        hint: Text('${user.accountStatus}'),
+        value: _selectedStatusMap[user.userId],
+        items: [
+          DropdownMenuItem(value: 0, child: Text('Pending')),
+          DropdownMenuItem(value: 1, child: Text('Reject')),
+          DropdownMenuItem(value: 2, child: Text('Accept')),
+        ],
+        onChanged: (status) {
+          if (status != null) {
+            setState(() {
+              _selectedStatusMap[user.userId] = status;
+
+              _updateAccountStatus(user.userId, status);
+            });
+          }
+        },
+        dropdownColor: Colors.white,
+        icon: Icon(Icons.arrow_drop_down, color: isStatusFinal ? Colors.grey : Colors.black),
+        disabledHint: Text(
+          '${user.accountStatus}', // Display current status when disabled
+          style: TextStyle(color: Colors.grey), // Greyed-out text when disabled
+        ),
+      ),
     );
   }
+
 
   Widget _buildLoadingIndicator() {
     return Container(

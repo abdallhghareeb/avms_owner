@@ -255,7 +255,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           AppSpaces.vSpace20,
                           // Forgot password link
                           GestureDetector(
-                            onTap: () {
+                            onTap: () async{
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

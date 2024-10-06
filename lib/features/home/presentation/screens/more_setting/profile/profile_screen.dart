@@ -1,3 +1,4 @@
+import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:avms/core/utils/app_color.dart';
@@ -33,6 +34,12 @@ class _UserScreenState extends State<UserScreen> {
         url: '$BASE_URL$SaveApiUrl/api/v1/user/$userId',
         token: TokenSave!,
       );
+      if(response.statusCode==401){
+        Fluttertoast.showToast(
+
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+      }
       return response.data;
     } on DioError catch (e) {
       if (e.response != null) {
@@ -145,7 +152,12 @@ class _UserScreenState extends State<UserScreen> {
           backgroundColor: Colors.green,
         );
         setState(() {});
-      } else {
+      } else if(response.statusCode==401){
+        Fluttertoast.showToast(
+
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+      }else {
         Fluttertoast.showToast(msg: 'Failed to update user');
       }
     } on DioError catch (e) {

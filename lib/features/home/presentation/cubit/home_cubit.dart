@@ -2,16 +2,17 @@ import 'dart:io';
 import 'dart:developer';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/config.dart';
+import 'package:avms/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:avms/features/home/data/models/api_res_create_inv.dart';
 import 'package:avms/features/home/domain/use_cases/cancel_invitation_use_case.dart';
 import 'package:avms/features/home/domain/use_cases/get_invitstion_by_id_use_case.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/update_profile/users_update_screen.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
-
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -242,7 +243,9 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> loadDashData() async {
     Future.wait([getDashInfo(), getInvitations()]);
   }
+
   Future<void> createInvitation({
+    XFile? file,
     required BuildContext context,
     required String name,
     required String phone,
@@ -251,25 +254,34 @@ class HomeCubit extends Cubit<HomeState> {
     required DateTime registerDate,
     required DateTime expiredDate,
     required String AreaId,
-    required XFile file,
     required String token,
     required int DocTypeId,
   }) async {
     emit(CreateInvitationLoadingState());
 
     try {
-      final formData = FormData.fromMap({
+      final DateFormat dateFormat = DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'", 'en_US');
+
+      final Map<String, dynamic> formDataMap = {
         "fullName": name,
         "email": email,
         "phone": phone,
-        "Image": await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
         "documentId": nationalId,
-        "registrationDate": DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(registerDate.toUtc()),
-        "expiryDate": DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(expiredDate.toUtc()),
+        "registrationDate": dateFormat.format(registerDate.toUtc()),
+        "expiryDate": dateFormat.format(expiredDate.toUtc()),
         "AreaId": AreaId,
         'DeviceIp': '147',
         'InvitDocType': DocTypeId,
-      });
+      };
+
+      // Add file to formDataMap if it's not null
+      if (file != null) {
+        formDataMap["Image"] = await MultipartFile.fromFile(file.path, filename: file.path.split('/').last);
+      }
+
+      // Create FormData
+      final formData = FormData.fromMap(formDataMap);
+
 
       final response = await DioHelper.createToInvitations(
         url: '$BASE_URL$SaveApiUrl$postCreateInvitationsEndPoint',
@@ -291,22 +303,34 @@ class HomeCubit extends Cubit<HomeState> {
         );
 
         emit(CreateInvitationSuccessState(qrImage: response.data!.qrLink, Message: response.message));
-      } else {
+      } else if(response.statusCode==401){
+        Fluttertoast.showToast(
+
+            msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+        AuthCubit.get(context).signOut(context: context);
+
+      }else {
         final errorResponse = ApiResponseToCreateInv.fromJson(response.data as Map<String, dynamic>);
         emit(CreateInvitationErrorState(response.message.isEmpty ? 'The User in blackList' : response.message, errorResponse));
       }
     } on DioError catch (e) {
       if (e.response != null) {
+        if(e.response!.statusCode==401){
+          Fluttertoast.showToast(
+
+              msg: 'Session expired. Please log out and log in again.',backgroundColor: Colors.red);
+          AuthCubit.get(context).signOut(context: context);
+        }else
         if (e.response!.statusCode == 400) {
           // Handle validation errors
           final validationErrors = e.response!.data['errors'] as Map<String, dynamic>;
           final errorMessages = validationErrors.entries
               .map((entry) => '${entry.key}: ${entry.value.join(', ')}')
               .join('\n');
-          emit(CreateInvitationErrorState(errorMessages.isEmpty  ? 'The User in blackList' : errorMessages, ApiResponseToCreateInv(
+          emit(CreateInvitationErrorState(errorMessages.isEmpty  ? 'You cannot send invitations as you are in the blacklist.' : errorMessages, ApiResponseToCreateInv(
             statusCode: 0,
             succeeded: false,
-            message: 'The User in blackList',
+            message: 'You cannot send invitations as you are in the blacklist.',
             data: Data(qrLink: ''),
             meta: null,
             errors: null,
@@ -314,10 +338,10 @@ class HomeCubit extends Cubit<HomeState> {
         } else {
           // Handle other errors
           final errorResponse = ApiResponseToCreateInv.fromJson(e.response!.data as Map<String, dynamic>);
-          emit(CreateInvitationErrorState(e.response!.statusMessage!.isEmpty ? 'The User in blackList' : 'API error: ${errorResponse.message}', errorResponse));
+          emit(CreateInvitationErrorState(e.response!.statusMessage!.isEmpty ? 'You cannot send invitations as you are in the blacklist.' : '${errorResponse.message}', errorResponse));
         }
       } else {
-        emit(CreateInvitationErrorState('Network error: ${e.message}', ApiResponseToCreateInv(
+        emit(CreateInvitationErrorState('${e.message}', ApiResponseToCreateInv(
           statusCode: 0,
           succeeded: false,
           message: 'Unexpected error occurred',
@@ -337,6 +361,11 @@ class HomeCubit extends Cubit<HomeState> {
       )));
     }
   }
+
+
+
+
+
 
 // Function to handle image sharing (You need to implement this)
 
