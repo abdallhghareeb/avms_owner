@@ -49,7 +49,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   var imagePicked;
   bool checkUnitAdmin = false;
   bool checkUser = false;
-
   Future<String> getDeviceId() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {

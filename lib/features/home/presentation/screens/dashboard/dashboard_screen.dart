@@ -1,5 +1,6 @@
 import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_size.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -72,46 +73,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchRecentInvitations({int pageNumber = 1}) async {
+    if (!_hasNetwork) {
+      setState(() {
+        _hasNetworkError = true;
+      });
+      return;
+    }
+
     setState(() {
-      _isLoadingMore = true;
+      _hasNetworkError = false;
     });
+
     try {
-      final List<VisitModel> allInvitations = await DioHelper.fetchData(
-        token: TokenSave!,
-        context: context,
-        parameters: {
-          "PageNumber": pageNumber,
-        },
+      final result = await DioHelper.fetchDataToDash(
+          token: TokenSave!,
+          parameters: {"PageNumber": pageNumber},
+          context: context
       );
 
-      // Filter the invitations based on status
-      final List<VisitModel> filteredInvitations = allInvitations.where((invitation) {
-        return invitation.status == 'Active' || invitation.status == 'Success and active';
-      }).toList();
-
-      setState(() {
-        if (pageNumber == 1) {
-          _recentInvitations = filteredInvitations;
+      if (result.isNotEmpty) {
+        setState(() {
+          _recentInvitations.addAll(result);
+        });
+      } else {
+        if (_hasMoreData) {
+          await _fetchRecentInvitations(pageNumber: pageNumber + 1);
         } else {
-          _recentInvitations.addAll(filteredInvitations);
+          setState(() {
+            _hasMoreData = false;
+            _isLoadingMore = false;
+          });
         }
-        _isLoadingMore = false;
+      }
+    } on DioError catch (dioError) {
+      print('DioError fetching invitations: ${dioError.message}');
+      setState(() {
+        _hasNetworkError = true;
       });
     } catch (e) {
-      print('Error fetching recent invitations: $e');
+      print('Error fetching invitations: $e');
+      setState(() {
+        _hasNetworkError = true;
+      });
+    } finally {
+      // Set _isLoadingMore to false regardless of whether data was fetched or not
       setState(() {
         _isLoadingMore = false;
       });
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Today Dashboard',style: TextStyle(
-          color: Colors.white,
-          fontSize: 20
+            color: Colors.white,
+            fontSize: 20
         ),),
         backgroundColor:  AppColors.primaryColor,
 
@@ -249,7 +268,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
               return false;
             },
-            child: ListView.builder(
+            child: _recentInvitations.isEmpty && !_isLoadingMore
+                ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'There are no invitations available',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+                : _isLoadingMore // Check if loading more data
+                ? Center(
+              child: CircularProgressIndicator(),
+            )
+                : ListView.builder(
               itemCount: _recentInvitations.length,
               itemBuilder: (context, index) {
                 VisitModel invitation = _recentInvitations[index];
@@ -283,7 +320,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12.0),
                               child: Image.network(
-                                // Use default image if documentImage is null or empty
                                 invitation.documentImage?.isNotEmpty == true
                                     ? invitation.documentImage!
                                     : 'assets/images/defultImage/def1.png',
@@ -313,7 +349,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               SizedBox(height: 8),
                               Text(
-                                'Expire Data: ${formatDate(invitation.expiryDate)}',
+                                'Expire Date: ${formatDate(invitation.expiryDate)}',
                                 style: TextStyle(fontSize: 14),
                               ),
                               SizedBox(height: 8),
@@ -332,6 +368,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
+
+
         if (_isLoadingMore)
           SizedBox(
             height: 50,

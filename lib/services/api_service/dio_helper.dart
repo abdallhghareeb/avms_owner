@@ -122,7 +122,7 @@ class DioHelper {
     }
   }
 
-  static Future<List<InvitationResponse>> fetchDataToInvtations({
+  static Future<List<VisitModel>> fetchDataToInvtations({
     required String token,
     Map<String, dynamic>? parameters,
   }) async {
@@ -140,7 +140,7 @@ class DioHelper {
       if (response.statusCode == 200) {
         List<dynamic> responseData = response.data['data']['data'];
         return responseData
-            .map((json) => InvitationResponse.fromJson(json))
+            .map((json) => VisitModel.fromJson(json))
             .toList();
       } else {
         throw Exception('Failed to load data');
@@ -493,6 +493,61 @@ class DioHelper {
 
     final response = await dio.post(url, data: param, options: options);
     return ApiResponseToCreateInv.fromJson(response.data);
+  }
+  static Future<List<VisitModel>> fetchDataToDash({
+    required String token,
+    Map<String, dynamic>? parameters,
+    required BuildContext context,
+  }) async {
+    try {
+      Response response = await dio.get(
+        '$BASE_URL$SaveApiUrl$getAllInvitationsEndPoint',
+        queryParameters: parameters,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> responseData = response.data['data']['data'];
+        List<VisitModel> visits = responseData
+            .map((json) => VisitModel.fromJson(json))
+            .toList();
+
+        // Filter out expired and canceled invitations
+        visits = visits.where((visit) => !isExpiredOrCanceled(visit)).toList();
+
+        return visits;
+      } else if (response.statusCode == 401) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+              (route) => false,
+        );
+
+        // Show session expired message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Session expired. Please log in again.')),
+        );
+        return []; // Return an empty list after navigating to login
+      } else {
+        // Handle other status codes
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${response.statusCode} - ${response.statusMessage}')),
+        );
+        return [];
+      }
+    } catch (e) {
+      // Handle exceptions and show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+      return [];
+    }
+  }
+
+  static bool isExpiredOrCanceled(VisitModel visit) {
+    // Implement the logic to determine if the invitation is expired or canceled
+    // For example:
+    return visit.status == 'Expired'||visit.status=='Canceld' ;
   }
 
   static Future<DashboardTabsInfo?> fetchDashInfo(BuildContext context) async {

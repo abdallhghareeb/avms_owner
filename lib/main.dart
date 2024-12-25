@@ -69,40 +69,46 @@ Future<void> main() async {
 
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  runApp(
-    EasyLocalization(
-      supportedLocales: Localization.locales,
-      path: 'assets/translation',
-      fallbackLocale: Localization.defaultLocale,
-      startLocale: Localization.defaultLocale,
-      saveLocale: true,
-      child: MultiBlocProvider(
-        providers: [
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp, // Portrait mode
+    DeviceOrientation.portraitDown, // (Optional) Inverted portrait mode
+  ]).then((_) {
+    runApp(
+      EasyLocalization(
+        supportedLocales: Localization.locales,
+        path: 'assets/translation',
+        fallbackLocale: Localization.defaultLocale,
+        startLocale: Localization.defaultLocale,
+        saveLocale: true,
+        child: MultiBlocProvider(
+          providers: [
 
 
-          BlocProvider<AuthCubit>(
-            create: (context) =>
-                AuthCubit(
-                  signInUseCase: sl(),
-                  signUpUseCase: sl(),
-                  signOutUseCase: sl(),
-                  forgotPasswordUseCase: sl(),
-                  resetPasswordUseCase: sl(),
-                ),
-          ),
-          BlocProvider<HomeCubit>(
-            create: (context) =>
-                HomeCubit(
-                    dashInfoUseCase: sl(),
-                    getInvitationUseCase: sl(),
-                    createInvitationUseCase: sl(),
-                    cancelInvitationUseCase: sl(),
-                    getInvitationByIdUseCase: sl()),
-          ),
-          BlocProvider<LangCubit>(create: (context) => LangCubit())
-        ],
-        child: AvmsApp(),
+            BlocProvider<AuthCubit>(
+              create: (context) =>
+                  AuthCubit(
+                    signInUseCase: sl(),
+                    signUpUseCase: sl(),
+                    signOutUseCase: sl(),
+                    forgotPasswordUseCase: sl(),
+                    resetPasswordUseCase: sl(),
+                  ),
+            ),
+            BlocProvider<HomeCubit>(
+              create: (context) =>
+                  HomeCubit(
+                      dashInfoUseCase: sl(),
+                      getInvitationUseCase: sl(),
+                      createInvitationUseCase: sl(),
+                      cancelInvitationUseCase: sl(),
+                      getInvitationByIdUseCase: sl()),
+            ),
+            BlocProvider<LangCubit>(create: (context) => LangCubit())
+          ],
+          child: AvmsApp(),
+        ),
       ),
-    ),
-  );
+    );
+  });
 }
