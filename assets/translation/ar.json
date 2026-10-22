@@ -108,7 +108,11 @@
   "Request": "طلب",
   "SeeAll": "عرض الكل",
   "Users": "المستخدمين",
-  "Update Your Profile": "تعديل البيانات"
+  "Update Your Profile": "تعديل البيانات",
+  "Login": "تسجيل دخول",
+  "Send": "إرسال",
+  "Send Code To Email": "إرسال الكود إلى البريد الإلكتروني",
+  "Forgot Password?": "نسيت كلمة المرور؟"
 
 
 

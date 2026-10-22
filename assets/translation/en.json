@@ -108,7 +108,11 @@
   "Request": "Request",
   "SeeAll": "See All",
   "Users": "Users",
-  "Update Your Profile": "Update Your Profile"
+  "Update Your Profile": "Update Your Profile",
+  "Login": "Login",
+  "Send": "Send",
+  "Send Code To Email": "Send Code To Email",
+  "Forgot Password?": "Forgot Password?"
 
 
 

@@ -13,7 +13,8 @@ import 'package:avms/features/auth/presentation/cubit/auth_state.dart';
 import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';
-import 'package:device_info/device_info.dart';
+import 'package:android_id/android_id.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,6 +57,8 @@ class AuthCubit extends Cubit<AuthState> {
       if (response.statusCode == 200) {
          loginModel = LoginModel.fromJson(response.data);
          await _cacheData(loginModel!);
+         TokenSave = loginModel!.data?.token;
+         DioHelper.updateToken();
         emit(AuthAuthenticated(loginModel!));
        } else {
         // Handle non-200 responses
@@ -231,13 +234,11 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<String> getId() async {
-    var deviceInfo = DeviceInfoPlugin();
     if (Platform.isIOS) {
-      var iosDeviceInfo = await deviceInfo.iosInfo;
-      return iosDeviceInfo.identifierForVendor; // unique ID on iOS
+      var iosDeviceInfo = await DeviceInfoPlugin().iosInfo;
+      return iosDeviceInfo.identifierForVendor ?? ''; // unique ID on iOS
     } else if (Platform.isAndroid) {
-      var androidDeviceInfo = await deviceInfo.androidInfo;
-      return await androidDeviceInfo.androidId; // unique ID on Android
+      return await const AndroidId().getId() ?? ''; // unique ID on Android
     } else {
       Exception("Error not found androidId");
       return 'Error';

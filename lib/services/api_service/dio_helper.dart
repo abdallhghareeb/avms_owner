@@ -26,7 +26,7 @@ class DioHelper {
     debugPrint("DioHelper init");
     dio = Dio(
       BaseOptions(
-          baseUrl: '$BASE_URL$SaveApiUrl',
+          baseUrl: SaveApiUrl ?? '',
           validateStatus: (int? status) {
             return status != null;
             // return status != null && status >= 200 && status < 300;
@@ -39,10 +39,17 @@ class DioHelper {
     );
   }
 
+  static void updateToken() {
+    dio.options.headers['Authorization'] = 'Bearer $TokenSave';
+  }
+
   static Future<List<Area>> fetchAreas() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -51,7 +58,7 @@ class DioHelper {
     ));
     try {
       Response response =
-          await dio.get('http://egydns.ddns.net:8622/api/v1/area/unit');
+          await dio.get('$BASE_URL$SaveApiUrl$getAreaUnitEndPoint');
       if (response.statusCode == 200) {
         var data = response.data['data'] as List;
         List<Area> areas = data.map((json) => Area.fromJson(json)).toList();
@@ -67,7 +74,10 @@ class DioHelper {
   static Future<List<Unit>> fetchUnits() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -77,7 +87,7 @@ class DioHelper {
 
     try {
       final response = await dio.get(
-        'http://egydns.ddns.net:8622/api/v1/units', // Replace with your units endpoint
+        '$BASE_URL$SaveApiUrl/api/v1/units', // Replace with your units endpoint
       );
 
       if (response.statusCode == 200) {
@@ -153,7 +163,10 @@ class DioHelper {
   static Future<List<Area>> fetchAreasWi(String ownerId) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -202,7 +215,10 @@ class DioHelper {
   static Future<List<Area>> fetchAreasWithHaveOwners() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -231,7 +247,10 @@ class DioHelper {
   static Future<List<Area>> fetchAreasWithoutOwners() async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -266,7 +285,10 @@ class DioHelper {
   static Future<Map<String, dynamic>> fetchUserData(String userId) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -311,7 +333,10 @@ class DioHelper {
     );
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -331,7 +356,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -349,7 +377,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -370,7 +401,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -391,7 +425,10 @@ class DioHelper {
     );
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -410,7 +447,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -430,7 +470,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -457,7 +500,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -588,7 +634,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         // Adjust this based on your requirements. True for all non-null status.
         return status != null;
@@ -643,7 +692,10 @@ class DioHelper {
     );
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -662,7 +714,10 @@ class DioHelper {
     );
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -681,7 +736,10 @@ class DioHelper {
     _debugPrintData(title: '==CreateInvitation==', endPoint: url, data: param);
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -708,7 +766,10 @@ class DioHelper {
         title: '==CancelInvitationVisit==', endPoint: url, data: data);
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -724,7 +785,10 @@ class DioHelper {
     _debugPrintData(title: '==GetByID==', endPoint: url);
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;
@@ -741,7 +805,10 @@ class DioHelper {
   }) async {
     final Dio dio = Dio(BaseOptions(
       baseUrl: '$BASE_URL$SaveApiUrl',
-      headers: {'accept': '*/*'},
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $TokenSave',
+      },
       validateStatus: (int? status) {
         return status != null;
         // return status != null && status >= 200 && status < 300;

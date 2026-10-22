@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 abstract class Config{
  static  Map Localization={};
  static  String language='English';
+ static String localeCode = 'en';
 
   static loadLanguage(String lang)async{
     String Translation;
@@ -15,6 +16,7 @@ abstract class Config{
       Translation= await rootBundle.loadString('assets/translation/en.json');
     }
 Localization= jsonDecode(Translation);
+localeCode = lang == 'ar' ? 'ar' : 'en';
   }
   static textChange(String lang){
     if (lang=='English') {

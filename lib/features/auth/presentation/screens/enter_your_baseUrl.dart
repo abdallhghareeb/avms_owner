@@ -1,7 +1,7 @@
 import 'package:avms/core/utils/app_color.dart';
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/app_strings.dart';
-import 'package:avms/features/auth/presentation/screens/register_screen.dart';
+import 'package:avms/features/auth/presentation/screens/login_screen.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/widgets/btn.dart';
 import 'package:dio/dio.dart';
@@ -30,7 +30,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   void _loadApiURL() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _apiController.text = prefs.getString('apiURL') ?? '';
+      _apiController.text = prefs.getString('apiUrl') ?? '';
     });
   }
 
@@ -42,15 +42,16 @@ class _ConfigScreenState extends State<ConfigScreen> {
   }
 
   Future<void> _saveToSharedPreferences() async {
-    String apiURL = _apiController.text;
+    String apiURL = normalizeApiUrl(_apiController.text);
     if (apiURL.isNotEmpty ) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      prefs.setString('apiUrl', apiURL);
+      await prefs.setString('apiUrl', apiURL);
+      await prefs.setBool('apiUrlSave', true);
       ConfigScreen.saveUrl = apiURL;
       SaveApiUrl = apiURL;
-
-      showDialog(
+      if (!mounted) return;
+      await showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -68,9 +69,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
         },
       );
 
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => RegisterScreen()),
+        MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     } else {
       showDialog(
@@ -78,7 +80,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Error'),
-            content: Text('Please enter a valid API URL starting with egydns.ddns.net:'),
+            content: Text('Enter a valid server address, for example https://server.example.com'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -97,7 +99,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     String? apiUrl = await _fetchApiUrl();
     if (apiUrl != null) {
       try {
-        var response = await Dio().get(apiUrl);
+        var response = await Dio().get(normalizeApiUrl(apiUrl));
         setState(() {
           _fetchedData = response.data.toString();
         });

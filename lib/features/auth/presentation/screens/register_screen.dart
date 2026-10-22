@@ -17,7 +17,8 @@ import 'package:avms/services/api_service/dio_helper.dart';
 import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/widgets/btn.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
-import 'package:device_info/device_info.dart';
+import 'package:android_id/android_id.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -50,13 +51,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool checkUnitAdmin = false;
   bool checkUser = false;
   Future<String> getDeviceId() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      return androidInfo.androidId; // Unique ID on Android
+      return await const AndroidId().getId() ?? ''; // Unique ID on Android
     } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      return iosInfo.identifierForVendor; // Unique ID on iOS
+      IosDeviceInfo iosInfo = await DeviceInfoPlugin().iosInfo;
+      return iosInfo.identifierForVendor ?? ''; // Unique ID on iOS
     }
     return '';
   }
@@ -77,14 +76,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // Initialize selectedAreaId as nullable int
   Future<String> _initDeviceId() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     try {
       if (Platform.isAndroid) {
-        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        return androidInfo.androidId; // Unique ID on Android
+        return await const AndroidId().getId() ?? ''; // Unique ID on Android
       } else if (Platform.isIOS) {
-        IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-        return iosInfo.identifierForVendor; // Unique ID on iOS
+        IosDeviceInfo iosInfo = await DeviceInfoPlugin().iosInfo;
+        return iosInfo.identifierForVendor ?? ''; // Unique ID on iOS
       } else {
         return 'Unknown device';
       }

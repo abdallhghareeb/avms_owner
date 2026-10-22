@@ -3,6 +3,7 @@ import 'package:avms/core/utils/config.dart';
 import 'package:avms/features/home/presentation/cubit/home_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/about/about_screen.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/account/account_screen.dart';
+import 'package:avms/features/home/presentation/screens/more_setting/privacy_policy_tile.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/apearance_screen.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_cubit.dart';
 import 'package:avms/features/home/presentation/screens/more_setting/appearance/cubit/lang_state.dart';
@@ -10,7 +11,7 @@ import 'package:avms/features/home/presentation/screens/more_setting/profile/pro
 import 'package:avms/features/home/presentation/screens/more_setting/update_profile/users_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 class MoreSettingScreen extends StatefulWidget {
   static const route = 'SettingsRoute';
@@ -27,6 +28,8 @@ class _MoreSettingScreenState extends State<MoreSettingScreen> {
         body: ListView(
           padding: EdgeInsets.all(mainPadding),
           children: <Widget>[
+            const PrivacyPolicyTile(),
+            const SizedBox(height: 10),
             ListTile(
               title: Text(Config.Localization["account"]),
               subtitle: Text(Config.Localization['Manage your account settings']),

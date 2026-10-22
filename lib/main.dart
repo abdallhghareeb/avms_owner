@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:avms/app.dart';
 import 'package:avms/core/utils/bloc_observer.dart';
 import 'package:avms/core/di/di.dart';
@@ -38,8 +37,9 @@ Future<void> main() async {
   SaveEmailForgetPass = pref.getString('SaveEmailForgetPass');
   SaveEmailRegisterToReset = pref.getString('emailSave');
   SaveNavToLoginWhenSaveApiUrl = pref.getBool('apiUrlSave');
+  hasLoggedInBefore = pref.getBool('hasLoggedIn');
   String ?saveUrl = pref.getString('apiUrl');
-  SaveApiUrl = saveUrl;
+  SaveApiUrl = saveUrl == null ? null : normalizeApiUrl(saveUrl);
   print('aaaaaaayyaya $SaveApiUrl');
   CacheHelper.userId = pref.getString('TokenUserId');
   print('cvzzzzzz$BASE_URL$SaveApiUrl');
@@ -47,8 +47,7 @@ Future<void> main() async {
   print('this is ${CacheHelper.userId}');
   print(pref.getInt('selectedAreaId'));
   print(pref.getInt('selectedAreaIdWithoutOwner'));
-  ConfigScreen.saveUrl =
-      pref.getString('apiURL') ?? 'http://egydns.ddns.net:2599/api/v1/';
+  ConfigScreen.saveUrl = SaveApiUrl;
 
   print(ConfigScreen.saveUrl);
   print('helllo $SaveApiUrl');
@@ -60,11 +59,9 @@ Future<void> main() async {
   await DioHelper.init();
   await CacheHelper.init();
   String? tokenDecode = CacheHelper.userToken;
-  print(TokenSave);
 
   Bloc.observer = MyBlocObserver();
 
-  HttpOverrides.global = MyHttpOverrides();
   setupLocator();
 
   SystemChrome.setPreferredOrientations(

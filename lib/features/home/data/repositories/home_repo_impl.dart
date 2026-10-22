@@ -1,5 +1,6 @@
 import 'package:avms/core/utils/app_conts.dart';
 import 'package:avms/core/utils/exceptions.dart';
+import 'package:avms/features/home/data/models/info_model.dart';
 import 'package:avms/features/home/data/models/qr_model.dart';
 import 'package:avms/features/home/data/models/visit_model.dart';
 import 'package:avms/features/home/domain/entities/Qr.dart';
@@ -25,10 +26,10 @@ class HomeRepoImpl extends HomeRepo {
   Future<List<Visit>> getInvitationsVisit() async {
     final res = await handleRequest(
       () => DioHelper.getInvitationVisits(
-          url: SaveApiUrl! + getAllInvitationsEndPoint),
+          url: BASE_URL + SaveApiUrl! + getAllInvitationsEndPoint),
     );
 
-    List visits = res.data;
+    List visits = res.data['data'];
     return visits.map((json) => VisitModel.fromJson(json)).toList();
   }
 
@@ -65,7 +66,7 @@ class HomeRepoImpl extends HomeRepo {
 
     final res = await handleRequest(
           () async => DioHelper.createInvitation(
-        url:postCreateInvitationsEndPoint,
+        url: BASE_URL + SaveApiUrl! + postCreateInvitationsEndPoint,
         param: formData, token: token,
       ),
     );
@@ -79,7 +80,7 @@ class HomeRepoImpl extends HomeRepo {
   Future<Map<String, dynamic>> cancelInvitationVisit(
       {required String canceledId}) async {
     final res = await handleRequest(() => DioHelper.cancelInvitationVisit(
-            url: BASE_URL + cancelInvitationVisitEndPoint,
+            url: BASE_URL + SaveApiUrl! + cancelInvitationVisitEndPoint,
             data: {
               "registrationId": canceledId,
             }));
@@ -92,7 +93,7 @@ class HomeRepoImpl extends HomeRepo {
   Future<Visit> getByID({required String ID}) async {
     final res = await handleRequest(
       () => DioHelper.getByID(
-        url: SaveApiUrl! + getInvitationByIDEndPoint + ID,
+        url: BASE_URL + SaveApiUrl! + getInvitationByIDEndPoint + ID,
       ),
     );
 
@@ -101,8 +102,11 @@ class HomeRepoImpl extends HomeRepo {
   }
 
   @override
-  Future<Info> getDashInfo() {
-    // TODO: implement getDashInfo
-    throw UnimplementedError();
+  Future<Info> getDashInfo() async {
+    final res = await handleRequest(() =>
+        DioHelper.getDashboardInfo(
+            url: BASE_URL + SaveApiUrl! + getDashInfoEndPoint));
+    logger.d("getDashInfo respoo ${res.data}");
+    return InfoModel.fromJson(res.data as Map<String, dynamic>);
   }
 }

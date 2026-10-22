@@ -2,7 +2,7 @@ name: avms
 description: A new Flutter project.
 
 
-version: 1.0.0+1
+version: 1.0.0+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -37,7 +37,7 @@ dependencies:
   intl:
   get_it:
   carousel_slider:
-  persistent_bottom_nav_bar: ^5.0.2
+  persistent_bottom_nav_bar: 6.2.1
   sqflite: ^2.0.0+2
 
   shimmer:
@@ -45,27 +45,25 @@ dependencies:
 #  phone_form_field: ^9.0.4
   omni_datetime_picker: ^1.0.9
   qr_flutter:
-  share_plus: ^6.3.4
-  flutter_share:
+  share_plus: 10.1.4
+  url_launcher: ^6.3.2
 
-  device_info: ^2.0.1
 
   intl_phone_field:
 #  show_loader_dialog:
   dialog_loader: ^0.0.3+3
+  device_info_plus: ^12.4.0
+  android_id: ^0.5.2+1
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
 
-
+  flutter_lints: ^2.0.0
 
 flutter_icons:
   android: launcher_icon
   ios: true
   image_path: "assets/images/logo/avms_logo.png"
-
-  flutter_test:
-    sdk: flutter
-
-  flutter_lints: ^2.0.0
 
 flutter:
   generate: true

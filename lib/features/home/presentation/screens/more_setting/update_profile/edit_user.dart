@@ -69,7 +69,7 @@ class _EditUserDialogState extends State<EditUserDialog> {
               });
 
               final response = await dio.post(
-                '$SaveApiUrl/api/v1/user/UpdateUser',
+                '$BASE_URL$SaveApiUrl/api/v1/user/UpdateUser',
                 data: formData,
                 options: Options(headers: {
                   'Authorization': 'Bearer $TokenSave',

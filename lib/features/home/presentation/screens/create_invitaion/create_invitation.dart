@@ -268,7 +268,7 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                   ],
                                   decoration: TextFieldDecoration.copyWith(
                                     labelText: Config.Localization['nationalId'],
-                                    prefixIcon: Icon(
+                                    prefixIcon: FaIcon(
                                       FontAwesomeIcons.idCard,
                                       color: AppColors.appColor,
                                       size: 22,
@@ -471,6 +471,17 @@ class _CreateInvitationScreenState extends State<CreateInvitationScreen> {
                                       );
                                     } else if (snapshot.hasData) {
                                       List<Area> areas = snapshot.data!;
+                                      if (areas.isEmpty) {
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10.0),
+                                          child: Text(
+                                            'No units available for your account',
+                                            style: TextStyle(
+                                                color: Colors.grey),
+                                          ),
+                                        );
+                                      }
                                       return DropdownButton<int>(
                                         hint: Text('Select an Area'),
                                         value: selectedAreaIdWithOwnerId,

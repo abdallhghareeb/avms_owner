@@ -1,4 +1,5 @@
 import 'package:avms/features/home/data/models/dashInfo_Model.dart';
+import 'package:avms/services/api_service/end_point.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,7 +14,7 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> loadDashData() async {
     emit(GetDashInfoLoadingState());
     try {
-      final response = await dio.get('http://egydns.ddns.net:8624/api/v1/dashboard/TabsInfo');
+      final response = await dio.get('$BASE_URL$SaveApiUrl$getDashInfoEndPoint');
       if (response.statusCode == 200) {
         info = DashboardTabsInfo.fromJson(response.data);
         emit(GetDashInfoSuccessState());

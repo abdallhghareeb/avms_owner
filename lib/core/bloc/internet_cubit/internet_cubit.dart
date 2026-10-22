@@ -10,12 +10,13 @@ class InternetCubit extends Cubit<InternetState> {
 
   InternetCubit({this.connectivity}) : super(InternetLoading()) {
     connectivityStreamSubscription =
-        connectivity?.onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult == ConnectivityResult.wifi) {
+        connectivity?.onConnectivityChanged.listen((connectivityResults) {
+      if (connectivityResults.contains(ConnectivityResult.wifi)) {
         emitInternetConnected(ConnectionType.wifi);
-      } else if (connectivityResult == ConnectivityResult.mobile) {
+      } else if (connectivityResults.contains(ConnectivityResult.mobile)) {
         emitInternetConnected(ConnectionType.mobile);
-      } else if (connectivityResult == ConnectivityResult.none) {
+      } else if (connectivityResults.isEmpty ||
+          connectivityResults.contains(ConnectivityResult.none)) {
         emitInternetDisconnected();
       }
     });
@@ -35,8 +36,8 @@ class InternetCubit extends Cubit<InternetState> {
   }
 
   Future<bool?> checkConnectivity() async {
-    Connectivity().checkConnectivity().then((ConnectivityResult result) {
-      if (result == ConnectivityResult.none) {
+    Connectivity().checkConnectivity().then((List<ConnectivityResult> results) {
+      if (results.isEmpty || results.contains(ConnectivityResult.none)) {
         emit(InternetDisconnected());
         return false;
       } else {

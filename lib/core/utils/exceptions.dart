@@ -163,6 +163,13 @@ Future handleRequest(Future<Response> Function() apiRequest,
     final call = await apiRequest();
     final response = call.data;
 
+    if (response is! Map<String, dynamic>) {
+      throw NetworkException(
+        message: 'Unexpected response (HTTP ${call.statusCode})',
+        code: call.statusCode ?? 0,
+      );
+    }
+
     // print("Response_Data => ${response["data"]}");
     printFullText("Status Code => ${response["statusCode"]}");
     printFullText("Status Message => ${response["message"]}");

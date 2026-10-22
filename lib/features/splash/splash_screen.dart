@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
         const Duration(seconds: 2),
       ).whenComplete(
         () {
-          if(SaveNavToLoginWhenSaveApiUrl==true){
+          if(SaveNavToLoginWhenSaveApiUrl==true || hasLoggedInBefore==true){
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
 
           }else if (CacheHelper.isLoginBefore) {

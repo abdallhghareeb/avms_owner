@@ -17,7 +17,8 @@ import 'package:avms/services/api_service/end_point.dart';
 import 'package:avms/services/local/cache_helper.dart';
 import 'package:avms/widgets/btn.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
-import 'package:device_info/device_info.dart';
+import 'package:android_id/android_id.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -59,13 +60,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isPasswordHidden = true;
 
   Future<String> getDeviceId() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      return androidInfo.androidId; // Unique ID on Android
+      return await const AndroidId().getId() ?? ''; // Unique ID on Android
     } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      return iosInfo.identifierForVendor; // Unique ID on iOS
+      IosDeviceInfo iosInfo = await DeviceInfoPlugin().iosInfo;
+      return iosInfo.identifierForVendor ?? ''; // Unique ID on iOS
     }
     return '';
   }
@@ -228,6 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 prefs.setString(
                                     'TokenUserId', '${CacheHelper.userId}');
                                 prefs.setString('TokenUser', '${TokenSave}');
+                                prefs.setBool('hasLoggedIn', true);
           
                                 // Print the userId
                                 print('UserId: ${CacheHelper.userId}');
